@@ -1,0 +1,18 @@
+# Render Blueprint - Lead Finder
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: lead-finder
+    runtime: docker
+    repo: https://github.com/alvaroferreira/GMapsLeadFinder
+    branch: main
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Configura manualmente no dashboard
+      - key: GOOGLE_PLACES_API_KEY
+        sync: false  # Configura manualmente no dashboard
+      - key: PORT
+        value: 10000
