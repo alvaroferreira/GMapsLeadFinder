@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "6789:6789"
+    environment:
+      - PORT=6789
+      - DATABASE_URL=${DATABASE_URL}
+      - GOOGLE_PLACES_API_KEY=${GOOGLE_PLACES_API_KEY}
+    env_file:
+      - .env
+    volumes:
+      - ./exports:/app/exports
+    restart: unless-stopped
+
+# Para desenvolvimento local com PostgreSQL:
+#   postgres:
+#     image: postgres:15
+#     environment:
+#       POSTGRES_DB: leadfinder
+#       POSTGRES_USER: leadfinder
+#       POSTGRES_PASSWORD: leadfinder
+#     ports:
+#       - "5432:5432"
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+#   postgres_data:

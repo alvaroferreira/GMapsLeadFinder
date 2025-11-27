@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Estatisticas - Lead Finder{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">Estatisticas</h1>
+
+    <!-- Lead Stats -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Leads</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                <div class="text-3xl font-bold text-blue-600">{{ stats.total }}</div>
+                <div class="text-gray-600">Total</div>
+            </div>
+            <div class="text-center p-4 bg-green-50 rounded-lg">
+                <div class="text-3xl font-bold text-green-600">{{ stats.avg_score }}</div>
+                <div class="text-gray-600">Score Medio</div>
+            </div>
+            <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                <div class="text-3xl font-bold text-yellow-600">{{ stats.avg_rating }}</div>
+                <div class="text-gray-600">Rating Medio</div>
+            </div>
+            <div class="text-center p-4 bg-orange-50 rounded-lg">
+                <div class="text-3xl font-bold text-orange-600">{{ stats.without_website }}</div>
+                <div class="text-gray-600">Sem Website</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Distribuicao por Status</h2>
+        <div class="space-y-4">
+            {% for status, count in stats.by_status.items() %}
+            <div>
+                <div class="flex justify-between mb-1">
+                    <span class="capitalize font-medium">{{ status }}</span>
+                    <span class="text-gray-600">{{ count }} ({{ "%.1f"|format(count / stats.total * 100) if stats.total > 0 else 0 }}%)</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div class="h-3 rounded-full
+                        {% if status == 'new' %}bg-blue-500
+                        {% elif status == 'contacted' %}bg-yellow-500
+                        {% elif status == 'qualified' %}bg-purple-500
+                        {% elif status == 'converted' %}bg-green-500
+                        {% else %}bg-gray-500{% endif %}"
+                        style="width: {{ (count / stats.total * 100) if stats.total > 0 else 0 }}%">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Search Stats -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Pesquisas</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                <div class="text-3xl font-bold text-purple-600">{{ search_stats.total_searches }}</div>
+                <div class="text-gray-600">Pesquisas</div>
+            </div>
+            <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                <div class="text-3xl font-bold text-indigo-600">{{ search_stats.total_results }}</div>
+                <div class="text-gray-600">Resultados</div>
+            </div>
+            <div class="text-center p-4 bg-pink-50 rounded-lg">
+                <div class="text-3xl font-bold text-pink-600">{{ search_stats.total_new_businesses }}</div>
+                <div class="text-gray-600">Novos Descobertos</div>
+            </div>
+            <div class="text-center p-4 bg-gray-50 rounded-lg">
+                <div class="text-3xl font-bold text-gray-600">{{ search_stats.total_api_calls }}</div>
+                <div class="text-gray-600">Chamadas API</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Insights -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4">Insights</h2>
+        <div class="space-y-3 text-gray-700">
+            {% if stats.without_website > 0 %}
+            <p>
+                <span class="text-orange-600 font-medium">{{ stats.without_website }}</span> leads
+                ({{ "%.1f"|format(stats.without_website / stats.total * 100) if stats.total > 0 else 0 }}%)
+                nao tem website - otima oportunidade para servicos de web design.
+            </p>
+            {% endif %}
+
+            {% if stats.new_this_week > 0 %}
+            <p>
+                <span class="text-green-600 font-medium">{{ stats.new_this_week }}</span> novos leads
+                descobertos esta semana.
+            </p>
+            {% endif %}
+
+            {% if stats.by_status.get('new', 0) > 0 %}
+            <p>
+                <span class="text-blue-600 font-medium">{{ stats.by_status.get('new', 0) }}</span> leads
+                ainda nao foram contactados.
+            </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

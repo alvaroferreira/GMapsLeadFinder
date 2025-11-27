@@ -1,0 +1,9 @@
+{% if result.status == 'success' %}
+<span class="text-green-600 text-sm">
+    ✓ {{ result.new_found }} novos ({{ result.total_found }} total)
+</span>
+{% else %}
+<span class="text-red-600 text-sm" title="{{ result.error_message }}">
+    ✗ Erro: {{ result.error_message[:30] if result.error_message else 'Desconhecido' }}{% if result.error_message and result.error_message|length > 30 %}...{% endif %}
+</span>
+{% endif %}

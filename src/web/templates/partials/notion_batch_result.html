@@ -1,0 +1,35 @@
+<div class="p-4 bg-gray-50 rounded-lg">
+    <h3 class="font-medium text-gray-800 mb-2">Sincronizacao Concluida</h3>
+
+    <div class="grid grid-cols-4 gap-4 mb-4">
+        <div class="text-center">
+            <div class="text-xl font-bold text-blue-600">{{ total }}</div>
+            <div class="text-sm text-gray-500">Total</div>
+        </div>
+        <div class="text-center">
+            <div class="text-xl font-bold text-green-600">{{ created_count }}</div>
+            <div class="text-sm text-gray-500">Criados</div>
+        </div>
+        <div class="text-center">
+            <div class="text-xl font-bold text-yellow-600">{{ updated_count }}</div>
+            <div class="text-sm text-gray-500">Atualizados</div>
+        </div>
+        <div class="text-center">
+            <div class="text-xl font-bold text-red-600">{{ failed_count }}</div>
+            <div class="text-sm text-gray-500">Falhados</div>
+        </div>
+    </div>
+
+    {% if failed_count > 0 %}
+    <div class="mt-4 p-3 bg-red-50 rounded border border-red-200">
+        <h4 class="font-medium text-red-800 mb-2">Erros:</h4>
+        <ul class="text-sm text-red-700 space-y-1">
+            {% for bid, result in results.items() %}
+            {% if not result.success %}
+            <li>{{ bid[:20] }}...: {{ result.error }}</li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>

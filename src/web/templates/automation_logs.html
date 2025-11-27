@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Logs - {{ search.name }} - Lead Finder{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <a href="/automation" class="text-blue-600 hover:underline text-sm">&larr; Voltar a Automacao</a>
+            <h1 class="text-3xl font-bold text-gray-800 mt-2">Logs: {{ search.name }}</h1>
+        </div>
+    </div>
+
+    <!-- Search Info -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <div class="text-gray-500 text-sm">Query</div>
+                <div class="font-medium">{{ search.query_params.query if search.query_params else '-' }}</div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Intervalo</div>
+                <div class="font-medium">{{ search.interval_hours }}h</div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Total Execucoes</div>
+                <div class="font-medium text-purple-600">{{ search.total_runs or 0 }}</div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Total Novos Encontrados</div>
+                <div class="font-medium text-green-600">{{ search.total_new_found or 0 }}</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t">
+            <div>
+                <div class="text-gray-500 text-sm">Status</div>
+                <div>
+                    {% if search.is_active %}
+                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">Ativo</span>
+                    {% else %}
+                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm">Inativo</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Ultima Execucao</div>
+                <div class="font-medium">{{ search.last_run_at.strftime('%d/%m/%Y %H:%M') if search.last_run_at else 'Nunca' }}</div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Proxima Execucao</div>
+                <div class="font-medium">{{ search.next_run_at.strftime('%d/%m/%Y %H:%M') if search.next_run_at else '-' }}</div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Criada</div>
+                <div class="font-medium">{{ search.created_at.strftime('%d/%m/%Y') }}</div>
+            </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t flex gap-2">
+            <button hx-post="/automation/{{ search.id }}/run-now"
+                    hx-target="#run-result"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Executar Agora
+            </button>
+            <form method="post" action="/automation/{{ search.id }}/toggle" class="inline">
+                <button type="submit" class="{% if search.is_active %}bg-yellow-600 hover:bg-yellow-700{% else %}bg-green-600 hover:bg-green-700{% endif %} text-white px-4 py-2 rounded">
+                    {% if search.is_active %}Pausar{% else %}Ativar{% endif %}
+                </button>
+            </form>
+            <span id="run-result" class="ml-2 self-center"></span>
+        </div>
+    </div>
+
+    <!-- Logs Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b">
+            <h2 class="text-lg font-semibold text-gray-800">Historico de Execucoes</h2>
+        </div>
+
+        {% if logs %}
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-gray-600">Data/Hora</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Total Encontrados</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Novos</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Score Alto</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Duracao</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Status</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Erro</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for log in logs %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3 text-sm">{{ log.executed_at.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+                    <td class="px-4 py-3">{{ log.total_found }}</td>
+                    <td class="px-4 py-3">
+                        <span class="{% if log.new_found > 0 %}text-green-600 font-medium{% else %}text-gray-500{% endif %}">
+                            {{ log.new_found }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="{% if log.high_score_found > 0 %}text-yellow-600 font-medium{% else %}text-gray-500{% endif %}">
+                            {{ log.high_score_found }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">{{ "%.2f"|format(log.duration_seconds) }}s</td>
+                    <td class="px-4 py-3">
+                        {% if log.status == 'success' %}
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">Sucesso</span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">Falhou</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-red-600">
+                        {% if log.error_message %}
+                        <span title="{{ log.error_message }}">
+                            {{ log.error_message[:50] }}{% if log.error_message|length > 50 %}...{% endif %}
+                        </span>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-8 text-center text-gray-500">
+            Nenhuma execucao registada ainda.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Stats Summary -->
+    {% if logs %}
+    <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Resumo</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <div class="text-gray-500 text-sm">Execucoes com Sucesso</div>
+                <div class="text-2xl font-bold text-green-600">
+                    {{ logs | selectattr('status', 'eq', 'success') | list | length }}
+                </div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Execucoes Falhadas</div>
+                <div class="text-2xl font-bold text-red-600">
+                    {{ logs | selectattr('status', 'eq', 'failed') | list | length }}
+                </div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Media Novos por Execucao</div>
+                <div class="text-2xl font-bold text-blue-600">
+                    {% set success_logs = logs | selectattr('status', 'eq', 'success') | list %}
+                    {% if success_logs %}
+                        {{ "%.1f"|format((success_logs | sum(attribute='new_found')) / (success_logs | length)) }}
+                    {% else %}
+                        0
+                    {% endif %}
+                </div>
+            </div>
+            <div>
+                <div class="text-gray-500 text-sm">Tempo Medio</div>
+                <div class="text-2xl font-bold text-purple-600">
+                    {% if logs %}
+                        {{ "%.1f"|format((logs | sum(attribute='duration_seconds')) / (logs | length)) }}s
+                    {% else %}
+                        0s
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

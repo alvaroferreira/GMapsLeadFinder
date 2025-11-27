@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - Lead Finder{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">Configuracoes</h1>
+    </div>
+
+    <!-- Notion Integration -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 bg-gray-50 border-b flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <svg class="w-8 h-8" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.017 4.313l55.333 -4.087c6.797 -0.583 8.543 -0.19 12.817 2.917l17.663 12.443c2.913 2.14 3.883 2.723 3.883 5.053v68.243c0 4.277 -1.553 6.807 -6.99 7.193L24.467 99.967c-4.08 0.193 -6.023 -0.39 -8.16 -3.113L3.3 79.94c-2.333 -3.113 -3.3 -5.443 -3.3 -8.167V11.113c0 -3.497 1.553 -6.413 6.017 -6.8z" fill="#fff"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M61.35 0.227l-55.333 4.087C1.553 4.7 0 7.617 0 11.113v60.66c0 2.723 0.967 5.053 3.3 8.167l13.007 16.913c2.137 2.723 4.08 3.307 8.16 3.113l64.257 -3.89c5.433 -0.387 6.99 -2.917 6.99 -7.193V20.64c0 -2.21 -0.873 -2.847 -3.443 -4.733L74.167 3.143c-4.273 -3.107 -6.02 -3.5 -12.817 -2.917zM25.92 19.523c-5.247 0.353 -6.437 0.433 -9.417 -1.99L8.927 11.507c-0.77 -0.78 -0.383 -1.753 1.557 -1.947l53.193 -3.887c4.467 -0.39 6.793 1.167 8.54 2.527l9.123 6.61c0.39 0.197 1.36 1.36 0.193 1.36l-54.933 3.307 -0.68 0.047zM19.803 88.3V30.367c0 -2.53 0.777 -3.697 3.103 -3.893L86 22.78c2.14 -0.193 3.107 1.167 3.107 3.693v57.547c0 2.53 -0.39 4.67 -3.883 4.863l-60.377 3.5c-3.493 0.193 -5.043 -0.97 -5.043 -4.083zm59.6 -54.827c0.387 1.75 0 3.5 -1.75 3.7l-2.91 0.577v42.773c-2.527 1.36 -4.853 2.137 -6.797 2.137 -3.107 0 -3.883 -0.973 -6.21 -3.887l-19.03 -29.94v28.967l6.02 1.363s0 3.5 -4.857 3.5l-13.39 0.777c-0.39 -0.78 0 -2.723 1.357 -3.11l3.497 -0.97v-38.3L30.48 40.667c-0.39 -1.75 0.58 -4.277 3.3 -4.473l14.367 -0.967 19.8 30.327v-26.83l-5.047 -0.58c-0.39 -2.143 1.163 -3.7 3.103 -3.89l13.4 -0.78z" fill="#000"/>
+                </svg>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-800">Notion CRM</h2>
+                    <p class="text-sm text-gray-500">Sincroniza leads com uma database Notion</p>
+                </div>
+            </div>
+            {% if notion_config and notion_config.is_active %}
+            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">Conectado</span>
+            {% else %}
+            <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">Desconectado</span>
+            {% endif %}
+        </div>
+
+        <div class="p-6">
+            {% if notion_config and notion_config.is_active %}
+            <!-- Connected State -->
+            <div class="space-y-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-5 h-5 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h3 class="font-medium text-green-800">Integracao Ativa</h3>
+                            <p class="text-sm text-green-700 mt-1">
+                                Workspace: <strong>{{ notion_config.workspace_name or 'N/A' }}</strong>
+                            </p>
+                            {% if notion_config.last_sync_at %}
+                            <p class="text-sm text-green-700">
+                                Ultima sync: {{ notion_config.last_sync_at.strftime('%d/%m/%Y %H:%M') }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-blue-600">{{ sync_stats.total }}</div>
+                        <div class="text-sm text-gray-500">Total Leads</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-green-600">{{ sync_stats.synced }}</div>
+                        <div class="text-sm text-gray-500">Sincronizados</div>
+                    </div>
+                    <div class="bg-gray-50 rounded-lg p-4 text-center">
+                        <div class="text-2xl font-bold text-yellow-600">{{ sync_stats.not_synced }}</div>
+                        <div class="text-sm text-gray-500">Por Sincronizar</div>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 pt-4 border-t">
+                    <form method="post" action="/settings/notion/disconnect" class="inline"
+                          onsubmit="return confirm('Desconectar do Notion? Os leads sincronizados permanecerao no Notion.')">
+                        <button type="submit" class="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200">
+                            Desconectar
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Disconnected State -->
+            <div class="space-y-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-medium text-blue-800">Como configurar:</h3>
+                    <ol class="text-sm text-blue-700 mt-2 space-y-1 list-decimal list-inside">
+                        <li>Vai a <a href="https://www.notion.so/my-integrations" target="_blank" class="underline">notion.so/my-integrations</a></li>
+                        <li>Cria uma nova "Internal Integration"</li>
+                        <li>Copia o "Internal Integration Token"</li>
+                        <li>No Notion, partilha a database com a integracao</li>
+                    </ol>
+                </div>
+
+                <form id="notion-connect-form" class="space-y-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">API Key (Internal Integration Token)</label>
+                        <input type="password" name="api_key" id="notion-api-key" required
+                               placeholder="secret_xxxxxxxxxxxxxxxxxxxx"
+                               class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <button type="button" onclick="testNotionConnection()"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Testar Conexao
+                    </button>
+
+                    <div id="notion-test-result" class="hidden"></div>
+                </form>
+
+                <!-- Database Selection (hidden initially) -->
+                <div id="notion-database-section" class="hidden space-y-4 pt-4 border-t">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Seleciona a Database</label>
+                        <select name="database_id" id="notion-database-select"
+                                class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Seleciona uma database...</option>
+                        </select>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Certifica-te que partilhaste a database com a integracao no Notion.
+                        </p>
+                    </div>
+
+                    <button type="button" onclick="connectNotion()"
+                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                        Conectar
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Future Integrations Placeholder -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">Outras Integracoes</h2>
+        <p class="text-gray-500">Mais integracoes em breve (HubSpot, Pipedrive, etc.)</p>
+    </div>
+</div>
+
+<script>
+let currentApiKey = '';
+
+async function testNotionConnection() {
+    const apiKey = document.getElementById('notion-api-key').value;
+    if (!apiKey) {
+        alert('Introduz o API Key');
+        return;
+    }
+
+    const resultDiv = document.getElementById('notion-test-result');
+    resultDiv.className = 'p-4 rounded-lg';
+    resultDiv.innerHTML = '<span class="text-gray-600">A testar conexao...</span>';
+    resultDiv.classList.remove('hidden');
+
+    try {
+        const response = await fetch('/settings/notion/test', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `api_key=${encodeURIComponent(apiKey)}`
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            currentApiKey = apiKey;
+            resultDiv.className = 'p-4 rounded-lg bg-green-50 border border-green-200';
+            resultDiv.innerHTML = `
+                <div class="text-green-800">
+                    <strong>Conexao bem sucedida!</strong><br>
+                    <span class="text-sm">Workspace: ${data.workspace_name || 'N/A'}</span>
+                </div>
+            `;
+
+            // Show database selection
+            const dbSection = document.getElementById('notion-database-section');
+            dbSection.classList.remove('hidden');
+
+            // Load databases
+            await loadNotionDatabases(apiKey);
+        } else {
+            resultDiv.className = 'p-4 rounded-lg bg-red-50 border border-red-200';
+            resultDiv.innerHTML = `<span class="text-red-800">Erro: ${data.error}</span>`;
+        }
+    } catch (error) {
+        resultDiv.className = 'p-4 rounded-lg bg-red-50 border border-red-200';
+        resultDiv.innerHTML = `<span class="text-red-800">Erro de conexao: ${error.message}</span>`;
+    }
+}
+
+async function loadNotionDatabases(apiKey) {
+    const select = document.getElementById('notion-database-select');
+
+    try {
+        const response = await fetch(`/settings/notion/databases?api_key=${encodeURIComponent(apiKey)}`);
+        const data = await response.json();
+
+        select.innerHTML = '<option value="">Seleciona uma database...</option>';
+
+        if (data.databases && data.databases.length > 0) {
+            data.databases.forEach(db => {
+                const option = document.createElement('option');
+                option.value = db.id;
+                option.textContent = db.title;
+                select.appendChild(option);
+            });
+        } else {
+            select.innerHTML = '<option value="">Nenhuma database encontrada - partilha uma database com a integracao</option>';
+        }
+    } catch (error) {
+        console.error('Erro ao carregar databases:', error);
+    }
+}
+
+async function connectNotion() {
+    const databaseId = document.getElementById('notion-database-select').value;
+    if (!databaseId) {
+        alert('Seleciona uma database');
+        return;
+    }
+
+    try {
+        const response = await fetch('/settings/notion/connect', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `api_key=${encodeURIComponent(currentApiKey)}&database_id=${encodeURIComponent(databaseId)}`
+        });
+
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            const data = await response.json();
+            alert('Erro: ' + (data.error || 'Falha ao conectar'));
+        }
+    } catch (error) {
+        alert('Erro: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

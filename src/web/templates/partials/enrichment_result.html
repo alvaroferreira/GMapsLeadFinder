@@ -1,0 +1,7 @@
+{% if result.success %}
+<span class="text-green-600 text-sm">
+    ✓ {{ result.emails|length }} email(s), {{ result.social_links|length }} social
+</span>
+{% else %}
+<span class="text-red-600 text-sm">✗ {{ result.error or 'Falhou' }}</span>
+{% endif %}

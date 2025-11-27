@@ -1,0 +1,35 @@
+<div class="bg-gray-50 rounded-lg p-4">
+    <div class="flex items-center gap-4 mb-4">
+        <div class="text-lg font-semibold">Resultado do Enrichment</div>
+        <span class="text-green-600">{{ success_count }} sucesso</span>
+        {% if failed_count > 0 %}
+        <span class="text-red-600">{{ failed_count }} falhados</span>
+        {% endif %}
+    </div>
+
+    {% if results %}
+    <div class="space-y-2 max-h-60 overflow-y-auto">
+        {% for place_id, result in results.items() %}
+        <div class="flex items-center gap-2 text-sm py-1 border-b border-gray-200">
+            {% if result.success %}
+            <span class="text-green-600">✓</span>
+            <span class="text-gray-700">{{ place_id[:20] }}...</span>
+            <span class="text-gray-500">
+                {{ result.emails|length }} email(s),
+                {{ result.social_links|length }} social,
+                {{ result.decision_makers|length }} decisor(es)
+            </span>
+            {% else %}
+            <span class="text-red-600">✗</span>
+            <span class="text-gray-700">{{ place_id[:20] }}...</span>
+            <span class="text-red-500">{{ result.error or 'Erro desconhecido' }}</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mt-4">
+        <a href="/enrichment" class="text-blue-600 hover:text-blue-800">Atualizar pagina</a>
+    </div>
+</div>

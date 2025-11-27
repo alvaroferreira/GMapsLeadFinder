@@ -1,0 +1,13 @@
+{% if result.success %}
+<span class="text-green-600 text-sm">
+    {% if result.action == 'created' %}
+    ✓ Criado no Notion
+    {% else %}
+    ✓ Atualizado no Notion
+    {% endif %}
+</span>
+{% else %}
+<span class="text-red-600 text-sm" title="{{ result.error }}">
+    ✗ {{ result.error[:40] if result.error else 'Erro' }}{% if result.error and result.error|length > 40 %}...{% endif %}
+</span>
+{% endif %}

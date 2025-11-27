@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lead Finder{% endblock %}</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <style>
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-block; }
+        .htmx-request.htmx-indicator { display: inline-block; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="text-xl font-bold">Lead Finder</a>
+                <div class="flex space-x-4">
+                    <a href="/" class="hover:bg-blue-700 px-3 py-2 rounded">Dashboard</a>
+                    <a href="/search" class="hover:bg-blue-700 px-3 py-2 rounded">Pesquisar</a>
+                    <a href="/leads" class="hover:bg-blue-700 px-3 py-2 rounded">Leads</a>
+                    <a href="/enrichment" class="hover:bg-blue-700 px-3 py-2 rounded">Enrichment</a>
+                    <a href="/automation" class="hover:bg-blue-700 px-3 py-2 rounded">Automacao</a>
+                    <a href="/notifications" class="hover:bg-blue-700 px-3 py-2 rounded relative">
+                        Notificacoes
+                        <span id="notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"></span>
+                    </a>
+                    <a href="/export" class="hover:bg-blue-700 px-3 py-2 rounded">Exportar</a>
+                    <a href="/stats" class="hover:bg-blue-700 px-3 py-2 rounded">Estatisticas</a>
+                    <a href="/settings" class="hover:bg-blue-700 px-3 py-2 rounded">Settings</a>
+                    <a href="/help" class="hover:bg-blue-700 px-3 py-2 rounded">Ajuda</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-4 mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>Lead Finder v1.0 - Google Maps Lead Prospecting Tool</p>
+        </div>
+    </footer>
+</body>
+</html>

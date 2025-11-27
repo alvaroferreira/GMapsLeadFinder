@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Enrichment - Lead Finder{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold text-gray-800">Enrichment de Dados</h1>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-gray-500 text-sm">Pendentes</div>
+            <div class="text-2xl font-bold text-blue-600">{{ stats.pending }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-gray-500 text-sm">Em Progresso</div>
+            <div class="text-2xl font-bold text-yellow-600">{{ stats.in_progress }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-gray-500 text-sm">Completos</div>
+            <div class="text-2xl font-bold text-green-600">{{ stats.completed }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-gray-500 text-sm">Falhados</div>
+            <div class="text-2xl font-bold text-red-600">{{ stats.failed }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-gray-500 text-sm">Sem Website</div>
+            <div class="text-2xl font-bold text-gray-600">{{ stats.no_website }}</div>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <div class="text-gray-500 text-sm">Total</div>
+            <div class="text-2xl font-bold text-gray-800">{{ stats.total }}</div>
+        </div>
+    </div>
+
+    <!-- Batch Enrichment Form -->
+    <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Enrichment em Lote</h2>
+        <form hx-post="/enrichment/enrich-batch" hx-target="#batch-result" hx-swap="innerHTML" class="space-y-4">
+            <div class="flex flex-wrap gap-4 items-end">
+                <div>
+                    <label class="block text-gray-700 text-sm mb-1">Quantidade</label>
+                    <select name="limit" class="px-3 py-2 border rounded">
+                        <option value="5">5 leads</option>
+                        <option value="10" selected>10 leads</option>
+                        <option value="20">20 leads</option>
+                        <option value="50">50 leads</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="enrich_all" value="true" id="enrich_all" checked>
+                    <label for="enrich_all" class="text-gray-700">Enriquecer proximos pendentes</label>
+                </div>
+                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                    <span class="htmx-indicator">
+                        <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                    </span>
+                    Iniciar Enrichment
+                </button>
+            </div>
+        </form>
+        <div id="batch-result" class="mt-4"></div>
+    </div>
+
+    <!-- Enrichable Leads Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="px-4 py-3 bg-gray-50 border-b">
+            <h2 class="text-lg font-semibold text-gray-800">Leads para Enriquecer ({{ enrichable_leads|length }})</h2>
+            <p class="text-gray-500 text-sm">Leads com website que ainda nao foram enriquecidos</p>
+        </div>
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-4 py-3 text-left text-gray-600">Nome</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Website</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Score</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Status</th>
+                    <th class="px-4 py-3 text-left text-gray-600">Acao</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                {% for lead in enrichable_leads %}
+                <tr class="hover:bg-gray-50" id="row-{{ lead.id }}">
+                    <td class="px-4 py-3">
+                        <a href="/leads/{{ lead.id }}" class="font-medium text-blue-600 hover:text-blue-800">
+                            {{ lead.name[:40] }}{% if lead.name|length > 40 %}...{% endif %}
+                        </a>
+                        <div class="text-gray-500 text-sm">{{ lead.formatted_address[:50] if lead.formatted_address else '-' }}{% if lead.formatted_address and lead.formatted_address|length > 50 %}...{% endif %}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        {% if lead.website %}
+                        <a href="{{ lead.website }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
+                            {{ lead.website[:30] }}{% if lead.website|length > 30 %}...{% endif %}
+                        </a>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded text-sm font-medium
+                            {% if lead.lead_score >= 50 %}bg-green-100 text-green-800
+                            {% elif lead.lead_score >= 30 %}bg-yellow-100 text-yellow-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ lead.lead_score }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-1 rounded text-sm
+                            {% if lead.enrichment_status == 'pending' %}bg-blue-100 text-blue-800
+                            {% elif lead.enrichment_status == 'failed' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ lead.enrichment_status }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button hx-post="/enrichment/enrich/{{ lead.id }}"
+                                hx-target="#result-{{ lead.id }}"
+                                hx-swap="innerHTML"
+                                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                            <span class="htmx-indicator">
+                                <svg class="animate-spin h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </span>
+                            Enriquecer
+                        </button>
+                        <span id="result-{{ lead.id }}" class="ml-2"></span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                        Nenhum lead pendente para enriquecer. Faz uma pesquisa para adicionar novos leads.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

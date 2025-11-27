@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Pesquisar - Lead Finder{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <h1 class="text-3xl font-bold text-gray-800">Pesquisar Negocios</h1>
+
+    {% if not has_api_key %}
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded">
+        <p class="font-bold">API Key nao configurada!</p>
+        <p>Configure GOOGLE_PLACES_API_KEY no ficheiro .env para fazer pesquisas.</p>
+    </div>
+    {% endif %}
+
+    <!-- Search Form -->
+    <form hx-post="/search"
+          hx-target="#search-results"
+          hx-indicator="#search-indicator"
+          class="bg-white rounded-lg shadow p-6 space-y-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Query -->
+            <div class="md:col-span-2">
+                <label class="block text-gray-700 font-medium mb-2">Pesquisa *</label>
+                <input type="text" name="query" required
+                       placeholder="Ex: restaurante Lisboa, dentista Porto..."
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            </div>
+
+            <!-- Location -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Localizacao (lat,lng)</label>
+                <input type="text" name="location"
+                       placeholder="Ex: 38.7223,-9.1393"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                <p class="text-gray-500 text-sm mt-1">Opcional. Coordenadas para bias de localizacao.</p>
+            </div>
+
+            <!-- Radius -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Raio (metros)</label>
+                <input type="number" name="radius" value="5000" min="100" max="50000"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Place Type -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Tipo de Negocio</label>
+                <select name="place_type"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos</option>
+                    <option value="restaurant">Restaurante</option>
+                    <option value="cafe">Cafe</option>
+                    <option value="bar">Bar</option>
+                    <option value="dentist">Dentista</option>
+                    <option value="doctor">Medico</option>
+                    <option value="gym">Ginasio</option>
+                    <option value="beauty_salon">Salao de Beleza</option>
+                    <option value="hair_care">Cabeleireiro</option>
+                    <option value="real_estate_agency">Imobiliaria</option>
+                    <option value="lawyer">Advogado</option>
+                    <option value="accounting">Contabilidade</option>
+                    <option value="car_dealer">Concessionario</option>
+                    <option value="car_repair">Oficina Auto</option>
+                    <option value="store">Loja</option>
+                </select>
+            </div>
+
+            <!-- Max Reviews -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Max Reviews</label>
+                <input type="number" name="max_reviews" min="0"
+                       placeholder="Ex: 10 (filtra negocios com menos visibilidade)"
+                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Has Website -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Website</label>
+                <select name="has_website"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="">Todos</option>
+                    <option value="yes">Com Website</option>
+                    <option value="no">Sem Website</option>
+                </select>
+            </div>
+
+            <!-- Max Results -->
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Max Resultados</label>
+                <select name="max_results"
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="60" selected>60</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-4">
+            <button type="submit" {% if not has_api_key %}disabled{% endif %}
+                    class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
+                <span id="search-indicator" class="htmx-indicator">
+                    <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Pesquisando...
+                </span>
+                <span class="htmx-indicator-hide">Pesquisar</span>
+            </button>
+            <p class="text-gray-500 text-sm">* Campo obrigatorio</p>
+        </div>
+    </form>
+
+    <!-- Results Area -->
+    <div id="search-results"></div>
+</div>
+{% endblock %}

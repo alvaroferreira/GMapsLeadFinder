@@ -1,0 +1,39 @@
+<div class="bg-white rounded-lg shadow p-6 space-y-4">
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold text-gray-800">Resultados da Pesquisa</h2>
+        <span class="text-gray-500">Query: "{{ query }}"</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-blue-50 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-blue-600">{{ result.total_found }}</div>
+            <div class="text-gray-600 text-sm">Encontrados</div>
+        </div>
+        <div class="bg-green-50 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-green-600">{{ result.new_businesses }}</div>
+            <div class="text-gray-600 text-sm">Novos</div>
+        </div>
+        <div class="bg-yellow-50 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-yellow-600">{{ result.updated_businesses }}</div>
+            <div class="text-gray-600 text-sm">Atualizados</div>
+        </div>
+        <div class="bg-purple-50 rounded p-3 text-center">
+            <div class="text-2xl font-bold text-purple-600">{{ result.api_calls }}</div>
+            <div class="text-gray-600 text-sm">Chamadas API</div>
+        </div>
+    </div>
+
+    {% if result.filtered_out > 0 %}
+    <p class="text-gray-500">{{ result.filtered_out }} resultados filtrados pelos criterios definidos.</p>
+    {% endif %}
+
+    <div class="flex gap-4">
+        <a href="/leads" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+            Ver Todos os Leads
+        </a>
+        <a href="/leads?status=new" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
+            Ver Novos Leads
+        </a>
+    </div>
+</div>
