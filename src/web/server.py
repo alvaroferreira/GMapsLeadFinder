@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, Form, Query, Request
+from fastapi import FastAPI, Form, Query, Request, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -138,12 +138,36 @@ async def do_search(
             has_website=website_filter,
         )
 
+        # Fetch the actual leads from the database
+        with db.get_session() as session:
+            businesses_db = BusinessQueries.get_all(
+                session,
+                limit=max_results_int,
+                order_by="lead_score",  # Order by score for best leads first
+            )
+
+            # Convert to dicts for template
+            leads = []
+            for b in businesses_db:
+                leads.append({
+                    "id": b.id,
+                    "name": b.name,
+                    "formatted_address": b.formatted_address,
+                    "latitude": b.latitude,
+                    "longitude": b.longitude,
+                    "rating": b.rating,
+                    "review_count": b.review_count,
+                    "lead_score": b.lead_score,
+                    "has_website": b.has_website,
+                })
+
         return templates.TemplateResponse(
             "partials/search_result.html",
             {
                 "request": request,
                 "result": result,
                 "query": query,
+                "leads": leads,
             },
         )
     except Exception as e:
@@ -265,6 +289,26 @@ async def lead_detail(request: Request, place_id: str):
                 "statuses": LEAD_STATUSES,
                 "notion_active": notion_active,
             },
+        )
+
+
+@app.get("/leads/{place_id}/drawer", response_class=HTMLResponse)
+async def get_lead_drawer(place_id: str, request: Request):
+    """Return lead details formatted for the drawer component."""
+    with db.get_session() as session:
+        business = BusinessQueries.get_by_id(session, place_id)
+        if not business:
+            raise HTTPException(status_code=404, detail="Lead not found")
+
+        statuses = LEAD_STATUSES
+
+        return templates.TemplateResponse(
+            "partials/lead_drawer.html",
+            {
+                "request": request,
+                "business": business,
+                "statuses": statuses
+            }
         )
 
 
@@ -661,12 +705,74 @@ async def api_unread_notifications() -> dict:
 
 # ============ SETTINGS ============
 
+def _get_env_file_path() -> Path:
+    """Retorna o caminho do ficheiro .env."""
+    return Path(__file__).parent.parent.parent / ".env"
+
+
+def _read_env_file() -> dict:
+    """Le o ficheiro .env e retorna um dicionario."""
+    env_path = _get_env_file_path()
+    env_vars = {}
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
+                    env_vars[key.strip()] = value.strip()
+    return env_vars
+
+
+def _write_env_file(env_vars: dict) -> None:
+    """Escreve o ficheiro .env mantendo comentarios e ordem."""
+    env_path = _get_env_file_path()
+    lines = []
+
+    # Ler ficheiro existente para manter comentarios
+    if env_path.exists():
+        with open(env_path, "r") as f:
+            for line in f:
+                stripped = line.strip()
+                if stripped.startswith("#") or not stripped:
+                    lines.append(line.rstrip())
+                elif "=" in stripped:
+                    key = stripped.split("=", 1)[0].strip()
+                    if key in env_vars:
+                        lines.append(f"{key}={env_vars[key]}")
+                        del env_vars[key]
+                    else:
+                        lines.append(line.rstrip())
+
+    # Adicionar novas variaveis
+    for key, value in env_vars.items():
+        lines.append(f"{key}={value}")
+
+    with open(env_path, "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def _mask_api_key(key: str) -> str:
+    """Mascara uma API key mostrando apenas os primeiros 8 caracteres."""
+    if not key or len(key) < 8:
+        return ""
+    return key[:8] + "••••••••••••"
+
+
 @app.get("/settings", response_class=HTMLResponse)
 async def settings_page(request: Request):
     """Pagina de configuracoes."""
     notion = NotionService()
     notion_config = notion.get_config()
     sync_stats = notion.get_sync_stats()
+
+    # Ler API keys do .env
+    env_vars = _read_env_file()
+    google_maps_key = env_vars.get("GOOGLE_PLACES_API_KEY", "")
+    openai_key = env_vars.get("OPENAI_API_KEY", "")
+    anthropic_key = env_vars.get("ANTHROPIC_API_KEY", "")
+    gemini_key = env_vars.get("GEMINI_API_KEY", "")
+    default_ai_provider = env_vars.get("DEFAULT_AI_PROVIDER", "")
 
     # Converter config para objeto para template
     class ConfigObj:
@@ -683,8 +789,73 @@ async def settings_page(request: Request):
             "request": request,
             "notion_config": ConfigObj(notion_config) if notion_config else None,
             "sync_stats": sync_stats,
+            # Google Maps
+            "google_maps_configured": bool(google_maps_key) and google_maps_key != "your_api_key_here",
+            "google_maps_key_masked": _mask_api_key(google_maps_key) if google_maps_key else "",
+            # AI Providers
+            "openai_configured": bool(openai_key),
+            "openai_key_masked": _mask_api_key(openai_key) if openai_key else "",
+            "anthropic_configured": bool(anthropic_key),
+            "anthropic_key_masked": _mask_api_key(anthropic_key) if anthropic_key else "",
+            "gemini_configured": bool(gemini_key),
+            "gemini_key_masked": _mask_api_key(gemini_key) if gemini_key else "",
+            "default_ai_provider": default_ai_provider,
         },
     )
+
+
+@app.post("/settings/api-keys/google-maps")
+async def save_google_maps_key(api_key: str = Form(...)):
+    """Guarda a API key do Google Maps no .env."""
+    try:
+        env_vars = _read_env_file()
+        env_vars["GOOGLE_PLACES_API_KEY"] = api_key
+        _write_env_file(env_vars)
+        # Atualizar variavel de ambiente em runtime
+        os.environ["GOOGLE_PLACES_API_KEY"] = api_key
+        return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/settings/api-keys/ai")
+async def save_ai_settings(
+    openai_api_key: str = Form(""),
+    anthropic_api_key: str = Form(""),
+    gemini_api_key: str = Form(""),
+    default_ai_provider: str = Form(""),
+):
+    """Guarda as API keys dos AI providers no .env."""
+    try:
+        env_vars = _read_env_file()
+
+        # Apenas atualiza se nao for masked (contem ••)
+        if openai_api_key and "••" not in openai_api_key:
+            env_vars["OPENAI_API_KEY"] = openai_api_key
+            os.environ["OPENAI_API_KEY"] = openai_api_key
+        elif not openai_api_key:
+            env_vars.pop("OPENAI_API_KEY", None)
+
+        if anthropic_api_key and "••" not in anthropic_api_key:
+            env_vars["ANTHROPIC_API_KEY"] = anthropic_api_key
+            os.environ["ANTHROPIC_API_KEY"] = anthropic_api_key
+        elif not anthropic_api_key:
+            env_vars.pop("ANTHROPIC_API_KEY", None)
+
+        if gemini_api_key and "••" not in gemini_api_key:
+            env_vars["GEMINI_API_KEY"] = gemini_api_key
+            os.environ["GEMINI_API_KEY"] = gemini_api_key
+        elif not gemini_api_key:
+            env_vars.pop("GEMINI_API_KEY", None)
+
+        if default_ai_provider:
+            env_vars["DEFAULT_AI_PROVIDER"] = default_ai_provider
+            os.environ["DEFAULT_AI_PROVIDER"] = default_ai_provider
+
+        _write_env_file(env_vars)
+        return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 
 @app.post("/settings/notion/test")

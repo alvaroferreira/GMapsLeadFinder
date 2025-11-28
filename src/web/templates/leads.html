@@ -1,51 +1,110 @@
 {% extends "base.html" %}
 
-{% block title %}Leads - Lead Finder{% endblock %}
+{% block title %}Leads - Geoscout Pro{% endblock %}
+
+{% block page_title %}Leads{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
+    <!-- Header Section -->
     <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">Leads ({{ total }})</h1>
+        <div>
+            <h2 class="text-2xl font-bold text-dark-text-primary">Total de Leads</h2>
+            <p class="text-dark-text-secondary mt-1">{{ total }} leads encontrados</p>
+        </div>
     </div>
 
-    <!-- Filters -->
-    <form method="get" class="bg-white rounded-lg shadow p-4">
+    <!-- Active Filters Chips -->
+    {% if current_status or current_min_score or current_has_website %}
+    <div class="flex flex-wrap gap-2 items-center">
+        <span class="text-sm text-dark-text-secondary">Filtros ativos:</span>
+
+        {% if current_status %}
+        <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
+            <span class="text-sm text-dark-text-primary">Status: {{ current_status|capitalize }}</span>
+            <a href="?{% if current_min_score %}min_score={{ current_min_score }}{% endif %}{% if current_has_website %}{% if current_min_score %}&{% endif %}has_website={{ current_has_website }}{% endif %}"
+               class="text-dark-text-muted hover:text-accent-danger transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_min_score %}
+        <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
+            <span class="text-sm text-dark-text-primary">Score Min: {{ current_min_score }}</span>
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_has_website %}{% if current_status %}&{% endif %}has_website={{ current_has_website }}{% endif %}"
+               class="text-dark-text-muted hover:text-accent-danger transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_has_website %}
+        <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
+            <span class="text-sm text-dark-text-primary">Website: {% if current_has_website == 'yes' %}Com{% else %}Sem{% endif %}</span>
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_min_score %}{% if current_status %}&{% endif %}min_score={{ current_min_score }}{% endif %}"
+               class="text-dark-text-muted hover:text-accent-danger transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+        {% endif %}
+
+        <a href="/leads" class="text-sm text-accent-primary hover:text-accent-primary/80 transition">
+            Limpar todos
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Filters Form -->
+    <form method="get" class="bg-dark-card rounded-xl border border-dark-border p-6">
         <div class="flex flex-wrap gap-4 items-end">
-            <div>
-                <label class="block text-gray-700 text-sm mb-1">Status</label>
-                <select name="status" class="px-3 py-2 border rounded">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-dark-text-secondary text-sm mb-2">Status</label>
+                <select name="status" class="w-full bg-dark-card border border-dark-border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                     <option value="">Todos</option>
                     {% for s in statuses %}
                     <option value="{{ s }}" {% if current_status == s %}selected{% endif %}>{{ s|capitalize }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div>
-                <label class="block text-gray-700 text-sm mb-1">Score Minimo</label>
+
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-dark-text-secondary text-sm mb-2">Score Minimo</label>
                 <input type="number" name="min_score" value="{{ current_min_score or '' }}"
-                       placeholder="Ex: 50" class="px-3 py-2 border rounded w-24">
+                       placeholder="Ex: 50"
+                       class="w-full bg-dark-card border border-dark-border rounded-lg px-4 py-2.5 text-white placeholder-dark-text-muted focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
             </div>
-            <div>
-                <label class="block text-gray-700 text-sm mb-1">Website</label>
-                <select name="has_website" class="px-3 py-2 border rounded">
+
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-dark-text-secondary text-sm mb-2">Website</label>
+                <select name="has_website" class="w-full bg-dark-card border border-dark-border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                     <option value="">Todos</option>
-                    <option value="yes" {% if current_has_website == 'yes' %}selected{% endif %}>Com</option>
-                    <option value="no" {% if current_has_website == 'no' %}selected{% endif %}>Sem</option>
+                    <option value="yes" {% if current_has_website == 'yes' %}selected{% endif %}>Com Website</option>
+                    <option value="no" {% if current_has_website == 'no' %}selected{% endif %}>Sem Website</option>
                 </select>
             </div>
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Filtrar
+
+            <button type="submit" class="bg-accent-primary hover:bg-accent-primary/80 text-white px-6 py-2.5 rounded-lg transition font-medium">
+                Aplicar Filtros
             </button>
-            <a href="/leads" class="text-gray-600 hover:text-gray-800 px-4 py-2">Limpar</a>
+            <a href="/leads" class="text-dark-text-secondary hover:text-white px-4 py-2.5 transition">
+                Limpar
+            </a>
         </div>
     </form>
 
     <!-- Notion Sync Bulk Action (if Notion is active) -->
     {% if notion_active %}
-    <div class="bg-white rounded-lg shadow p-4" id="notion-bulk-actions">
+    <div class="bg-dark-card rounded-xl border border-dark-border p-4" id="notion-bulk-actions">
         <div class="flex items-center gap-4">
-            <span class="text-gray-700 font-medium">Notion:</span>
-            <button type="button" onclick="syncSelectedToNotion()" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+            <span class="text-dark-text-primary font-medium">Notion:</span>
+            <button type="button" onclick="syncSelectedToNotion()" class="bg-black hover:bg-gray-900 text-white px-4 py-2 rounded-lg transition font-medium">
                 Sync Selecionados
             </button>
             <span id="notion-bulk-result" class="text-sm"></span>
@@ -53,117 +112,222 @@
     </div>
     {% endif %}
 
-    <!-- Leads Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    {% if notion_active %}
-                    <th class="px-2 py-3 text-left text-gray-600">
-                        <input type="checkbox" id="select-all" onclick="toggleSelectAll()" class="rounded">
-                    </th>
-                    {% endif %}
-                    <th class="px-4 py-3 text-left text-gray-600">Nome</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Score</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Rating</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Reviews</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Website</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Status</th>
-                    {% if notion_active %}
-                    <th class="px-4 py-3 text-left text-gray-600">Notion</th>
-                    {% endif %}
-                    <th class="px-4 py-3 text-left text-gray-600">Acoes</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                {% for b in businesses %}
-                <tr class="hover:bg-gray-50">
-                    {% if notion_active %}
-                    <td class="px-2 py-3">
-                        <input type="checkbox" class="lead-checkbox rounded" value="{{ b['id'] }}">
-                    </td>
-                    {% endif %}
-                    <td class="px-4 py-3">
-                        <div class="font-medium text-gray-800">{{ b['name'][:35] if b['name'] else '-' }}{% if b['name'] and b['name']|length > 35 %}...{% endif %}</div>
-                        <div class="text-gray-500 text-sm">{{ b['formatted_address'][:40] if b['formatted_address'] else '-' }}{% if b['formatted_address'] and b['formatted_address']|length > 40 %}...{% endif %}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 rounded text-sm font-medium
-                            {% if b['lead_score'] >= 50 %}bg-green-100 text-green-800
-                            {% elif b['lead_score'] >= 30 %}bg-yellow-100 text-yellow-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {{ b['lead_score'] }}
+    <!-- Leads Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for b in businesses %}
+        <div class="bg-dark-card rounded-xl border border-dark-border hover:border-accent-primary/50 transition cursor-pointer group relative"
+             hx-get="/leads/{{ b['id'] }}/drawer"
+             hx-target="#lead-drawer-content">
+
+            <!-- Notion Checkbox (if Notion is active) -->
+            {% if notion_active %}
+            <div class="absolute top-3 left-3 z-10">
+                <input type="checkbox"
+                       class="lead-checkbox rounded bg-dark-card border-dark-border"
+                       value="{{ b['id'] }}"
+                       onclick="event.stopPropagation()">
+            </div>
+            {% endif %}
+
+            <!-- Notion Sync Indicator (if Notion is active) -->
+            {% if notion_active %}
+            <div class="absolute top-3 right-3 z-10">
+                {% if b['notion_synced_at'] %}
+                <span class="bg-accent-success/10 text-accent-success text-xs px-2 py-1 rounded-full flex items-center gap-1"
+                      title="Sincronizado em {{ b['notion_synced_at'].strftime('%d/%m %H:%M') }}">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                    Notion
+                </span>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="p-5">
+                <!-- Avatar with Company Initial -->
+                <div class="flex items-start gap-4 mb-4">
+                    <div class="w-12 h-12 rounded-full bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center flex-shrink-0">
+                        <span class="text-white text-lg font-bold">
+                            {{ b['name'][0]|upper if b['name'] else '?' }}
                         </span>
-                    </td>
-                    <td class="px-4 py-3">
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <!-- Company Name -->
+                        <h3 class="text-dark-text-primary font-semibold truncate mb-1" title="{{ b['name'] }}">
+                            {{ b['name'][:30] if b['name'] else '-' }}{% if b['name'] and b['name']|length > 30 %}...{% endif %}
+                        </h3>
+
+                        <!-- Address -->
+                        <p class="text-dark-text-muted text-sm truncate" title="{{ b['formatted_address'] }}">
+                            {{ b['formatted_address'][:35] if b['formatted_address'] else '-' }}{% if b['formatted_address'] and b['formatted_address']|length > 35 %}...{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Rating Stars -->
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex gap-0.5">
                         {% if b['rating'] %}
-                        <span class="text-yellow-500">★</span> {{ "%.1f"|format(b['rating']) }}
-                        {% else %}-{% endif %}
-                    </td>
-                    <td class="px-4 py-3">{{ b['review_count'] or 0 }}</td>
-                    <td class="px-4 py-3">
-                        {% if b['has_website'] %}
-                        <span class="text-green-600">✓</span>
+                            {% for i in range(5) %}
+                                {% if i < b['rating']|int %}
+                                <svg class="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                {% else %}
+                                <svg class="w-4 h-4 text-dark-border" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                {% endif %}
+                            {% endfor %}
                         {% else %}
-                        <span class="text-red-500">✗</span>
+                            {% for i in range(5) %}
+                            <svg class="w-4 h-4 text-dark-border" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            {% endfor %}
                         {% endif %}
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 rounded text-sm
-                            {% if b['lead_status'] == 'new' %}bg-blue-100 text-blue-800
-                            {% elif b['lead_status'] == 'contacted' %}bg-yellow-100 text-yellow-800
-                            {% elif b['lead_status'] == 'qualified' %}bg-purple-100 text-purple-800
-                            {% elif b['lead_status'] == 'converted' %}bg-green-100 text-green-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
-                            {{ b['lead_status'] }}
+                    </div>
+                    <span class="text-dark-text-secondary text-sm">
+                        {% if b['rating'] %}
+                        {{ "%.1f"|format(b['rating']) }} ({{ b['review_count'] or 0 }})
+                        {% else %}
+                        Sem reviews
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Score Badge and Status Chips -->
+                <div class="flex items-center gap-2 mb-4">
+                    <!-- Circular Score Badge -->
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm
+                        {% if b['lead_score'] >= 50 %}bg-accent-success/20 text-accent-success border-2 border-accent-success
+                        {% elif b['lead_score'] >= 30 %}bg-accent-warning/20 text-accent-warning border-2 border-accent-warning
+                        {% else %}bg-dark-border/20 text-dark-text-muted border-2 border-dark-border{% endif %}">
+                        {{ b['lead_score'] }}
+                    </div>
+
+                    <div class="flex flex-col gap-1 flex-1 min-w-0">
+                        <!-- Website Status -->
+                        <span class="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium w-fit
+                            {% if b['has_website'] %}bg-accent-success/10 text-accent-success
+                            {% else %}bg-accent-danger/10 text-accent-danger{% endif %}">
+                            {% if b['has_website'] %}
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Website
+                            {% else %}
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            Sem Website
+                            {% endif %}
                         </span>
-                    </td>
-                    {% if notion_active %}
-                    <td class="px-4 py-3">
-                        {% if b['notion_synced_at'] %}
-                        <span class="text-green-600 text-sm" title="Sincronizado em {{ b['notion_synced_at'].strftime('%d/%m %H:%M') }}">✓</span>
-                        {% else %}
-                        <span class="text-gray-400 text-sm">-</span>
-                        {% endif %}
-                    </td>
+
+                        <!-- Lead Status -->
+                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium w-fit truncate
+                            {% if b['lead_status'] == 'new' %}bg-blue-500/10 text-blue-400
+                            {% elif b['lead_status'] == 'contacted' %}bg-amber-500/10 text-amber-400
+                            {% elif b['lead_status'] == 'qualified' %}bg-purple-500/10 text-purple-400
+                            {% elif b['lead_status'] == 'converted' %}bg-accent-success/10 text-accent-success
+                            {% else %}bg-dark-border/20 text-dark-text-muted{% endif %}">
+                            {{ b['lead_status']|capitalize }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Quick Action Buttons (visible on hover) -->
+                <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {% if b['phone'] %}
+                    <a href="tel:{{ b['phone'] }}"
+                       onclick="event.stopPropagation()"
+                       class="flex-1 flex items-center justify-center gap-2 bg-dark-surface hover:bg-accent-primary/20 border border-dark-border hover:border-accent-primary text-dark-text-secondary hover:text-accent-primary px-3 py-2 rounded-lg transition"
+                       title="Ligar">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                    </a>
                     {% endif %}
-                    <td class="px-4 py-3">
-                        <a href="/leads/{{ b['id'] }}" class="text-blue-600 hover:text-blue-800">Ver</a>
-                        {% if b['google_maps_url'] %}
-                        <a href="{{ b['google_maps_url'] }}" target="_blank" class="text-gray-600 hover:text-gray-800 ml-2">Maps</a>
-                        {% endif %}
-                        {% if notion_active %}
-                        <button hx-post="/notion/sync/{{ b['id'] }}"
-                                hx-target="#notion-result-{{ loop.index }}"
-                                class="text-gray-600 hover:text-gray-800 ml-2 text-sm">Sync</button>
-                        <span id="notion-result-{{ loop.index }}" class="ml-1"></span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="{% if notion_active %}9{% else %}7{% endif %}" class="px-4 py-8 text-center text-gray-500">
-                        Nenhum lead encontrado com os filtros selecionados
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+
+                    {% if b['website'] %}
+                    <a href="{{ b['website'] }}"
+                       target="_blank"
+                       onclick="event.stopPropagation()"
+                       class="flex-1 flex items-center justify-center gap-2 bg-dark-surface hover:bg-accent-primary/20 border border-dark-border hover:border-accent-primary text-dark-text-secondary hover:text-accent-primary px-3 py-2 rounded-lg transition"
+                       title="Website">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+
+                    {% if b['google_maps_url'] %}
+                    <a href="{{ b['google_maps_url'] }}"
+                       target="_blank"
+                       onclick="event.stopPropagation()"
+                       class="flex-1 flex items-center justify-center gap-2 bg-dark-surface hover:bg-accent-primary/20 border border-dark-border hover:border-accent-primary text-dark-text-secondary hover:text-accent-primary px-3 py-2 rounded-lg transition"
+                       title="Google Maps">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                        </svg>
+                    </a>
+                    {% endif %}
+
+                    {% if notion_active %}
+                    <button hx-post="/notion/sync/{{ b['id'] }}"
+                            hx-target="#notion-result-{{ loop.index }}"
+                            onclick="event.stopPropagation()"
+                            class="flex-1 flex items-center justify-center gap-2 bg-dark-surface hover:bg-accent-primary/20 border border-dark-border hover:border-accent-primary text-dark-text-secondary hover:text-accent-primary px-3 py-2 rounded-lg transition"
+                            title="Sync Notion">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                    <span id="notion-result-{{ loop.index }}" class="hidden"></span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-span-full bg-dark-card rounded-xl border border-dark-border p-12 text-center">
+            <svg class="w-16 h-16 text-dark-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+            </svg>
+            <p class="text-dark-text-secondary text-lg">Nenhum lead encontrado com os filtros selecionados</p>
+            <a href="/leads" class="inline-block mt-4 text-accent-primary hover:text-accent-primary/80 transition">
+                Limpar filtros
+            </a>
+        </div>
+        {% endfor %}
     </div>
 
     <!-- Pagination -->
     {% if total_pages > 1 %}
-    <div class="flex justify-center gap-2">
+    <div class="flex justify-center gap-2 items-center mt-8">
         {% if page > 1 %}
         <a href="?page={{ page - 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_min_score %}&min_score={{ current_min_score }}{% endif %}{% if current_has_website %}&has_website={{ current_has_website }}{% endif %}"
-           class="px-4 py-2 bg-white border rounded hover:bg-gray-50">Anterior</a>
+           class="px-4 py-2 bg-dark-card border border-dark-border rounded-lg hover:bg-dark-card-hover hover:border-accent-primary/50 text-dark-text-primary transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </a>
         {% endif %}
 
-        <span class="px-4 py-2 text-gray-600">Pagina {{ page }} de {{ total_pages }}</span>
+        <div class="flex items-center gap-2">
+            <span class="px-4 py-2 text-dark-text-secondary">
+                Pagina <span class="text-dark-text-primary font-semibold">{{ page }}</span> de <span class="text-dark-text-primary font-semibold">{{ total_pages }}</span>
+            </span>
+        </div>
 
         {% if page < total_pages %}
         <a href="?page={{ page + 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_min_score %}&min_score={{ current_min_score }}{% endif %}{% if current_has_website %}&has_website={{ current_has_website }}{% endif %}"
-           class="px-4 py-2 bg-white border rounded hover:bg-gray-50">Proxima</a>
+           class="px-4 py-2 bg-dark-card border border-dark-border rounded-lg hover:bg-dark-card-hover hover:border-accent-primary/50 text-dark-text-primary transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </a>
         {% endif %}
     </div>
     {% endif %}
@@ -187,7 +351,7 @@ async function syncSelectedToNotion() {
     }
 
     const resultSpan = document.getElementById('notion-bulk-result');
-    resultSpan.innerHTML = '<span class="text-gray-600">A sincronizar...</span>';
+    resultSpan.innerHTML = '<span class="text-dark-text-secondary">A sincronizar...</span>';
 
     try {
         const response = await fetch('/notion/sync-batch', {
@@ -202,7 +366,7 @@ async function syncSelectedToNotion() {
         // Reload page after 2 seconds to show updated sync status
         setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
-        resultSpan.innerHTML = `<span class="text-red-600">Erro: ${error.message}</span>`;
+        resultSpan.innerHTML = `<span class="text-accent-danger">Erro: ${error.message}</span>`;
     }
 }
 </script>

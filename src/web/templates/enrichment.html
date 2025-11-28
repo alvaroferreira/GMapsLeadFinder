@@ -1,49 +1,129 @@
 {% extends "base.html" %}
 
+{% block page_title %}Enrichment{% endblock %}
+
 {% block title %}Enrichment - Lead Finder{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">Enrichment de Dados</h1>
+        <h1 class="text-3xl font-bold text-dark-text-primary">Enrichment de Dados</h1>
+    </div>
+
+    <!-- Visual Process Flow -->
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <h3 class="text-lg font-semibold text-dark-text-primary mb-6">Fluxo de Enrichment</h3>
+        <div class="flex items-center justify-between relative">
+            <!-- Pending Step -->
+            <div class="flex flex-col items-center flex-1 relative z-10">
+                <div class="w-20 h-20 rounded-full bg-blue-500/20 border-2 border-blue-500 flex items-center justify-center mb-3 relative">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-blue-400">{{ stats.pending }}</div>
+                    </div>
+                </div>
+                <div class="text-sm font-medium text-blue-400">Pendentes</div>
+                <div class="text-xs text-dark-text-muted mt-1">Aguardando</div>
+            </div>
+
+            <!-- Arrow 1 -->
+            <div class="flex-1 flex items-center justify-center -mx-4">
+                <svg class="w-12 h-12 text-dark-border" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/>
+                </svg>
+            </div>
+
+            <!-- In Progress Step -->
+            <div class="flex flex-col items-center flex-1 relative z-10">
+                <div class="w-20 h-20 rounded-full bg-amber-500/20 border-2 border-amber-500 flex items-center justify-center mb-3 relative animate-pulse">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-amber-400">{{ stats.in_progress }}</div>
+                    </div>
+                    <!-- Pulsing ring animation -->
+                    <div class="absolute inset-0 rounded-full border-2 border-amber-500 animate-ping opacity-75"></div>
+                </div>
+                <div class="text-sm font-medium text-amber-400">Em Progresso</div>
+                <div class="text-xs text-dark-text-muted mt-1">Processando</div>
+            </div>
+
+            <!-- Arrow 2 -->
+            <div class="flex-1 flex items-center justify-center -mx-4">
+                <svg class="w-12 h-12 text-dark-border" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v3.992h16.354l-6.176 6.176 2.847 2.828 10.975-11z"/>
+                </svg>
+            </div>
+
+            <!-- Completed Step -->
+            <div class="flex flex-col items-center flex-1 relative z-10">
+                <div class="w-20 h-20 rounded-full bg-accent-success/20 border-2 border-accent-success flex items-center justify-center mb-3">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-accent-success">{{ stats.completed }}</div>
+                    </div>
+                </div>
+                <div class="text-sm font-medium text-accent-success">Completos</div>
+                <div class="text-xs text-dark-text-muted mt-1">Finalizados</div>
+            </div>
+
+            <!-- Failed - Shown to the side -->
+            <div class="absolute -right-4 top-1/2 -translate-y-1/2 translate-x-full ml-8">
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-full bg-accent-danger/20 border-2 border-accent-danger flex items-center justify-center mb-2">
+                        <div class="text-xl font-bold text-accent-danger">{{ stats.failed }}</div>
+                    </div>
+                    <div class="text-xs font-medium text-accent-danger">Falhados</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overall Progress Bar -->
+        <div class="mt-8">
+            <div class="flex justify-between text-sm text-dark-text-secondary mb-2">
+                <span>Progresso Total</span>
+                <span>{{ stats.completed }} / {{ stats.total }} ({% if stats.total > 0 %}{{ ((stats.completed / stats.total) * 100)|round|int }}%{% else %}0%{% endif %})</span>
+            </div>
+            <div class="w-full bg-dark-border rounded-full h-3 overflow-hidden">
+                <div class="bg-accent-success h-full transition-all duration-500 ease-out rounded-full"
+                     style="width: {% if stats.total > 0 %}{{ ((stats.completed / stats.total) * 100)|round }}%{% else %}0%{% endif %}">
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Pendentes</div>
-            <div class="text-2xl font-bold text-blue-600">{{ stats.pending }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4">
+            <div class="text-dark-text-muted text-sm">Pendentes</div>
+            <div class="text-2xl font-bold text-blue-400">{{ stats.pending }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Em Progresso</div>
-            <div class="text-2xl font-bold text-yellow-600">{{ stats.in_progress }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4">
+            <div class="text-dark-text-muted text-sm">Em Progresso</div>
+            <div class="text-2xl font-bold text-amber-400">{{ stats.in_progress }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Completos</div>
-            <div class="text-2xl font-bold text-green-600">{{ stats.completed }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4">
+            <div class="text-dark-text-muted text-sm">Completos</div>
+            <div class="text-2xl font-bold text-accent-success">{{ stats.completed }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Falhados</div>
-            <div class="text-2xl font-bold text-red-600">{{ stats.failed }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4">
+            <div class="text-dark-text-muted text-sm">Falhados</div>
+            <div class="text-2xl font-bold text-accent-danger">{{ stats.failed }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Sem Website</div>
-            <div class="text-2xl font-bold text-gray-600">{{ stats.no_website }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4">
+            <div class="text-dark-text-muted text-sm">Sem Website</div>
+            <div class="text-2xl font-bold text-dark-text-secondary">{{ stats.no_website }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Total</div>
-            <div class="text-2xl font-bold text-gray-800">{{ stats.total }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4">
+            <div class="text-dark-text-muted text-sm">Total</div>
+            <div class="text-2xl font-bold text-dark-text-primary">{{ stats.total }}</div>
         </div>
     </div>
 
     <!-- Batch Enrichment Form -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Enrichment em Lote</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <h2 class="text-xl font-semibold text-dark-text-primary mb-4">Enrichment em Lote</h2>
         <form hx-post="/enrichment/enrich-batch" hx-target="#batch-result" hx-swap="innerHTML" class="space-y-4">
             <div class="flex flex-wrap gap-4 items-end">
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Quantidade</label>
-                    <select name="limit" class="px-3 py-2 border rounded">
+                    <label class="block text-dark-text-secondary text-sm mb-1">Quantidade</label>
+                    <select name="limit" class="px-3 py-2 border border-dark-border rounded bg-dark-card text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                         <option value="5">5 leads</option>
                         <option value="10" selected>10 leads</option>
                         <option value="20">20 leads</option>
@@ -51,10 +131,11 @@
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input type="checkbox" name="enrich_all" value="true" id="enrich_all" checked>
-                    <label for="enrich_all" class="text-gray-700">Enriquecer proximos pendentes</label>
+                    <input type="checkbox" name="enrich_all" value="true" id="enrich_all" checked
+                           class="w-4 h-4 rounded border-dark-border bg-dark-card text-accent-primary focus:ring-accent-primary focus:ring-offset-dark-bg">
+                    <label for="enrich_all" class="text-dark-text-secondary">Enriquecer proximos pendentes</label>
                 </div>
-                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 flex items-center gap-2">
+                <button type="submit" class="bg-accent-primary text-white px-6 py-2 rounded hover:bg-accent-primary/80 transition-colors flex items-center gap-2">
                     <span class="htmx-indicator">
                         <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -69,50 +150,52 @@
     </div>
 
     <!-- Enrichable Leads Table -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-4 py-3 bg-gray-50 border-b">
-            <h2 class="text-lg font-semibold text-gray-800">Leads para Enriquecer ({{ enrichable_leads|length }})</h2>
-            <p class="text-gray-500 text-sm">Leads com website que ainda nao foram enriquecidos</p>
+    <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+        <div class="px-4 py-3 bg-dark-card border-b border-dark-border">
+            <h2 class="text-lg font-semibold text-dark-text-primary">Leads para Enriquecer ({{ enrichable_leads|length }})</h2>
+            <p class="text-dark-text-muted text-sm">Leads com website que ainda nao foram enriquecidos</p>
         </div>
         <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-dark-bg/50">
                 <tr>
-                    <th class="px-4 py-3 text-left text-gray-600">Nome</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Website</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Score</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Status</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Acao</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary font-medium">Nome</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary font-medium">Website</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary font-medium">Score</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary font-medium">Status</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary font-medium">Acao</th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
+            <tbody class="divide-y divide-dark-border">
                 {% for lead in enrichable_leads %}
-                <tr class="hover:bg-gray-50" id="row-{{ lead.id }}">
+                <tr class="hover:bg-dark-bg/50 transition-colors" id="row-{{ lead.id }}">
                     <td class="px-4 py-3">
-                        <a href="/leads/{{ lead.id }}" class="font-medium text-blue-600 hover:text-blue-800">
+                        <a href="/leads/{{ lead.id }}" class="font-medium text-accent-primary hover:text-accent-primary/80">
                             {{ lead.name[:40] }}{% if lead.name|length > 40 %}...{% endif %}
                         </a>
-                        <div class="text-gray-500 text-sm">{{ lead.formatted_address[:50] if lead.formatted_address else '-' }}{% if lead.formatted_address and lead.formatted_address|length > 50 %}...{% endif %}</div>
+                        <div class="text-dark-text-muted text-sm">{{ lead.formatted_address[:50] if lead.formatted_address else '-' }}{% if lead.formatted_address and lead.formatted_address|length > 50 %}...{% endif %}</div>
                     </td>
                     <td class="px-4 py-3">
                         {% if lead.website %}
-                        <a href="{{ lead.website }}" target="_blank" class="text-blue-600 hover:text-blue-800 text-sm">
+                        <a href="{{ lead.website }}" target="_blank" class="text-accent-primary hover:text-accent-primary/80 text-sm">
                             {{ lead.website[:30] }}{% if lead.website|length > 30 %}...{% endif %}
                         </a>
-                        {% else %}-{% endif %}
+                        {% else %}<span class="text-dark-text-muted">-</span>{% endif %}
                     </td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded text-sm font-medium
-                            {% if lead.lead_score >= 50 %}bg-green-100 text-green-800
-                            {% elif lead.lead_score >= 30 %}bg-yellow-100 text-yellow-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if lead.lead_score >= 50 %}bg-accent-success/20 text-accent-success border border-accent-success
+                            {% elif lead.lead_score >= 30 %}bg-amber-500/20 text-amber-400 border border-amber-500
+                            {% else %}bg-dark-border/50 text-dark-text-secondary border border-dark-border{% endif %}">
                             {{ lead.lead_score }}
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        <span class="px-2 py-1 rounded text-sm
-                            {% if lead.enrichment_status == 'pending' %}bg-blue-100 text-blue-800
-                            {% elif lead.enrichment_status == 'failed' %}bg-red-100 text-red-800
-                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        <span class="px-2 py-1 rounded text-sm font-medium
+                            {% if lead.enrichment_status == 'pending' %}bg-blue-500/20 text-blue-400 border border-blue-500
+                            {% elif lead.enrichment_status == 'in_progress' %}bg-amber-500/20 text-amber-400 border border-amber-500 animate-pulse
+                            {% elif lead.enrichment_status == 'completed' %}bg-accent-success/20 text-accent-success border border-accent-success
+                            {% elif lead.enrichment_status == 'failed' %}bg-accent-danger/20 text-accent-danger border border-accent-danger
+                            {% else %}bg-dark-border/50 text-dark-text-secondary border border-dark-border{% endif %}">
                             {{ lead.enrichment_status }}
                         </span>
                     </td>
@@ -120,7 +203,7 @@
                         <button hx-post="/enrichment/enrich/{{ lead.id }}"
                                 hx-target="#result-{{ lead.id }}"
                                 hx-swap="innerHTML"
-                                class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                                class="bg-accent-primary text-white px-3 py-1 rounded text-sm hover:bg-accent-primary/80 transition-colors">
                             <span class="htmx-indicator">
                                 <svg class="animate-spin h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -134,7 +217,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="5" class="px-4 py-8 text-center text-dark-text-muted">
                         Nenhum lead pendente para enriquecer. Faz uma pesquisa para adicionar novos leads.
                     </td>
                 </tr>

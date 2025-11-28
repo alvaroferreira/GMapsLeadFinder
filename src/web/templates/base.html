@@ -3,10 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Lead Finder{% endblock %}</title>
+    <title>{% block title %}Geoscout Pro{% endblock %}</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#1a1a2e',
+                        'dark-surface': '#16213e',
+                        'dark-card': '#1f2937',
+                        'dark-card-hover': '#252d3d',
+                        'dark-border': '#374151',
+                        'accent-primary': '#6366f1',
+                        'accent-secondary': '#8b5cf6',
+                        'accent-success': '#10b981',
+                        'accent-warning': '#f59e0b',
+                        'accent-danger': '#ef4444',
+                        'dark-text-primary': '#f9fafb',
+                        'dark-text-secondary': '#9ca3af',
+                        'dark-text-muted': '#6b7280',
+                    },
+                    boxShadow: {
+                        'dark': '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)',
+                        'dark-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
+                    }
+                }
+            }
+        }
+    </script>
 
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
@@ -15,43 +42,304 @@
         .htmx-indicator { display: none; }
         .htmx-request .htmx-indicator { display: inline-block; }
         .htmx-request.htmx-indicator { display: inline-block; }
+
+        /* Sidebar mobile transition */
+        @media (max-width: 1023px) {
+            #sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+            #sidebar.open {
+                transform: translateX(0);
+            }
+        }
+
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
     </style>
+
+    {% block head %}{% endblock %}
 </head>
-<body class="bg-gray-100 min-h-screen">
-    <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <a href="/" class="text-xl font-bold">Lead Finder</a>
-                <div class="flex space-x-4">
-                    <a href="/" class="hover:bg-blue-700 px-3 py-2 rounded">Dashboard</a>
-                    <a href="/search" class="hover:bg-blue-700 px-3 py-2 rounded">Pesquisar</a>
-                    <a href="/leads" class="hover:bg-blue-700 px-3 py-2 rounded">Leads</a>
-                    <a href="/enrichment" class="hover:bg-blue-700 px-3 py-2 rounded">Enrichment</a>
-                    <a href="/automation" class="hover:bg-blue-700 px-3 py-2 rounded">Automacao</a>
-                    <a href="/notifications" class="hover:bg-blue-700 px-3 py-2 rounded relative">
-                        Notificacoes
-                        <span id="notification-badge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"></span>
-                    </a>
-                    <a href="/export" class="hover:bg-blue-700 px-3 py-2 rounded">Exportar</a>
-                    <a href="/stats" class="hover:bg-blue-700 px-3 py-2 rounded">Estatisticas</a>
-                    <a href="/settings" class="hover:bg-blue-700 px-3 py-2 rounded">Settings</a>
-                    <a href="/help" class="hover:bg-blue-700 px-3 py-2 rounded">Ajuda</a>
+<body class="bg-dark-bg min-h-screen text-dark-text-primary">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-dark-surface border-r border-dark-border flex flex-col">
+            <!-- Logo Section -->
+            <div class="p-4 border-b border-dark-border">
+                <a href="/" class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span class="text-xl font-bold text-white">Geoscout Pro</span>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <!-- Dashboard -->
+                <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <!-- Pesquisar -->
+                <a href="/search" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/search' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <span>Pesquisar</span>
+                </a>
+
+                <!-- Leads -->
+                <a href="/leads" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if '/leads' in request.path %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <span>Leads</span>
+                </a>
+
+                <!-- Enrichment -->
+                <a href="/enrichment" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/enrichment' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                    </svg>
+                    <span>Enrichment</span>
+                </a>
+
+                <!-- Automacao -->
+                <a href="/automation" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if '/automation' in request.path %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Automacao</span>
+                </a>
+
+                <div class="border-t border-dark-border my-4"></div>
+
+                <!-- Notificacoes -->
+                <a href="/notifications" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/notifications' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span>Notificacoes</span>
+                    <span id="sidebar-notification-badge" class="hidden absolute right-4 bg-accent-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"></span>
+                </a>
+
+                <!-- Exportar -->
+                <a href="/export" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/export' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <span>Exportar</span>
+                </a>
+
+                <!-- Estatisticas -->
+                <a href="/stats" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/stats' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    <span>Estatisticas</span>
+                </a>
+
+                <div class="border-t border-dark-border my-4"></div>
+
+                <!-- Settings -->
+                <a href="/settings" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/settings' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+
+                <!-- Ajuda -->
+                <a href="/help" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/help' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Ajuda</span>
+                </a>
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-dark-border">
+                <div class="text-xs text-dark-text-muted">v2.0 - Geoscout Pro</div>
+            </div>
+        </aside>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Header Bar -->
+            <header class="h-16 bg-dark-surface border-b border-dark-border flex items-center justify-between px-6 flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <!-- Mobile Menu Toggle -->
+                    <button id="sidebar-toggle" class="lg:hidden p-2 hover:bg-dark-card rounded-lg transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                    <h1 class="text-xl font-semibold">{% block page_title %}Dashboard{% endblock %}</h1>
                 </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Search Bar (optional) -->
+                    <div class="hidden md:flex items-center">
+                        <div class="relative">
+                            <input type="text" placeholder="Pesquisar leads..."
+                                   class="w-64 bg-dark-card border border-dark-border rounded-lg px-4 py-2 pl-10 text-sm focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
+                            <svg class="w-4 h-4 text-dark-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Notification Bell -->
+                    <a href="/notifications" class="relative p-2 hover:bg-dark-card rounded-lg transition">
+                        <svg class="w-6 h-6 text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        <span id="notification-badge" class="hidden absolute -top-1 -right-1 bg-accent-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"></span>
+                    </a>
+
+                    <!-- Quick Action Button -->
+                    <a href="/search" class="hidden sm:flex items-center gap-2 bg-accent-primary hover:bg-accent-primary/80 text-white px-4 py-2 rounded-lg transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        <span>Nova Pesquisa</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Scrollable Content Area -->
+            <main class="flex-1 overflow-y-auto p-6">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <!-- Lead Detail Drawer -->
+        <div id="lead-drawer" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-dark-surface border-l border-dark-border shadow-dark-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50 hidden">
+            <div id="lead-drawer-content" class="h-full overflow-y-auto">
+                <!-- Content loaded via HTMX -->
             </div>
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-8">
-        {% block content %}{% endblock %}
-    </main>
+        <!-- Drawer Overlay -->
+        <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-gray-400 py-4 mt-8">
-        <div class="container mx-auto px-4 text-center">
-            <p>Lead Finder v1.0 - Google Maps Lead Prospecting Tool</p>
-        </div>
-    </footer>
+    <!-- Notification Badge Update Script -->
+    <script>
+        // Update notification badge
+        async function updateNotificationBadge() {
+            try {
+                const response = await fetch('/api/notifications/unread');
+                const data = await response.json();
+                const badges = [
+                    document.getElementById('notification-badge'),
+                    document.getElementById('sidebar-notification-badge')
+                ];
+
+                badges.forEach(badge => {
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count > 99 ? '99+' : data.count;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating notification badge:', error);
+            }
+        }
+
+        // Update badge on page load and every 30 seconds
+        updateNotificationBadge();
+        setInterval(updateNotificationBadge, 30000);
+    </script>
+
+    <!-- Sidebar Toggle Script -->
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('hidden');
+        }
+
+        sidebarToggle.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    </script>
+
+    <!-- Drawer Functions -->
+    <script>
+        function openLeadDrawer() {
+            const drawer = document.getElementById('lead-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+
+            drawer.classList.remove('hidden');
+            overlay.classList.remove('hidden');
+
+            // Small delay to trigger CSS transition
+            setTimeout(() => {
+                drawer.classList.remove('translate-x-full');
+            }, 10);
+        }
+
+        function closeLeadDrawer() {
+            const drawer = document.getElementById('lead-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+
+            drawer.classList.add('translate-x-full');
+
+            setTimeout(() => {
+                drawer.classList.add('hidden');
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close drawer when clicking overlay
+        document.getElementById('drawer-overlay').addEventListener('click', closeLeadDrawer);
+
+        // Close drawer with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeLeadDrawer();
+            }
+        });
+
+        // HTMX event: open drawer after content loads
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'lead-drawer-content') {
+                openLeadDrawer();
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
 </body>
 </html>

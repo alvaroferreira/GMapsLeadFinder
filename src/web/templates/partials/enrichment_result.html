@@ -1,7 +1,17 @@
 {% if result.success %}
-<span class="text-green-600 text-sm">
-    ✓ {{ result.emails|length }} email(s), {{ result.social_links|length }} social
-</span>
+<div class="flex items-center gap-2 bg-accent-success/10 border border-accent-success/20 text-accent-success rounded-lg px-3 py-2">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span class="text-sm font-medium">
+        {{ result.emails|length }} email(s), {{ result.social_links|length }} social
+    </span>
+</div>
 {% else %}
-<span class="text-red-600 text-sm">✗ {{ result.error or 'Falhou' }}</span>
+<div class="flex items-center gap-2 bg-accent-danger/10 border border-accent-danger/20 text-accent-danger rounded-lg px-3 py-2">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span class="text-sm font-medium">{{ result.error or 'Falhou' }}</span>
+</div>
 {% endif %}

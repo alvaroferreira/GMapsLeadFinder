@@ -1,32 +1,123 @@
 {% extends "base.html" %}
 
+{% block page_title %}Exportar{% endblock %}
+
 {% block title %}Exportar - Lead Finder{% endblock %}
 
 {% block content %}
 <div class="max-w-2xl mx-auto space-y-6">
-    <h1 class="text-3xl font-bold text-gray-800">Exportar Leads</h1>
+    <h1 class="text-3xl font-bold text-dark-text-primary">Exportar Leads</h1>
 
-    <div class="bg-white rounded-lg shadow p-6">
-        <p class="text-gray-600 mb-6">Total de leads disponiveis: <strong>{{ total }}</strong></p>
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <p class="text-dark-text-secondary mb-6">Total de leads disponiveis: <strong class="text-dark-text-primary">{{ total }}</strong></p>
 
-        <form method="post" action="/export/download" class="space-y-4">
-            <!-- Format -->
+        <form method="post" action="/export/download" class="space-y-6">
+            <!-- Format Selection -->
             <div>
-                <label class="block text-gray-700 font-medium mb-2">Formato</label>
-                <select name="format" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
-                    <option value="csv">CSV (Generico)</option>
-                    <option value="xlsx">Excel (.xlsx)</option>
-                    <option value="json">JSON</option>
-                    <option value="hubspot">HubSpot (CSV)</option>
-                    <option value="pipedrive">Pipedrive (CSV)</option>
-                    <option value="salesforce">Salesforce (CSV)</option>
-                </select>
+                <label class="block text-dark-text-primary font-medium mb-3">Formato de Exportação</label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <!-- CSV Option -->
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="format" value="csv" checked class="peer sr-only">
+                        <div class="bg-dark-card border border-dark-border hover:border-dark-text-muted peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 rounded-lg p-4 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-6 h-6 text-accent-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-dark-text-primary">CSV</div>
+                                    <div class="text-sm text-dark-text-muted">Genérico</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Excel Option -->
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="format" value="xlsx" class="peer sr-only">
+                        <div class="bg-dark-card border border-dark-border hover:border-dark-text-muted peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 rounded-lg p-4 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-6 h-6 text-accent-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-dark-text-primary">Excel</div>
+                                    <div class="text-sm text-dark-text-muted">.xlsx</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- JSON Option -->
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="format" value="json" class="peer sr-only">
+                        <div class="bg-dark-card border border-dark-border hover:border-dark-text-muted peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 rounded-lg p-4 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-6 h-6 text-accent-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-dark-text-primary">JSON</div>
+                                    <div class="text-sm text-dark-text-muted">Dados estruturados</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- HubSpot Option -->
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="format" value="hubspot" class="peer sr-only">
+                        <div class="bg-dark-card border border-dark-border hover:border-dark-text-muted peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 rounded-lg p-4 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-6 h-6 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-dark-text-primary">HubSpot</div>
+                                    <div class="text-sm text-dark-text-muted">CSV CRM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Pipedrive Option -->
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="format" value="pipedrive" class="peer sr-only">
+                        <div class="bg-dark-card border border-dark-border hover:border-dark-text-muted peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 rounded-lg p-4 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-6 h-6 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-dark-text-primary">Pipedrive</div>
+                                    <div class="text-sm text-dark-text-muted">CSV CRM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Salesforce Option -->
+                    <label class="relative cursor-pointer">
+                        <input type="radio" name="format" value="salesforce" class="peer sr-only">
+                        <div class="bg-dark-card border border-dark-border hover:border-dark-text-muted peer-checked:border-accent-primary peer-checked:bg-accent-primary/10 rounded-lg p-4 transition-all">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-6 h-6 text-accent-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                                </svg>
+                                <div>
+                                    <div class="font-medium text-dark-text-primary">Salesforce</div>
+                                    <div class="text-sm text-dark-text-muted">CSV CRM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
             </div>
 
             <!-- Status Filter -->
             <div>
-                <label class="block text-gray-700 font-medium mb-2">Filtrar por Status</label>
-                <select name="status" class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                <label class="block text-dark-text-primary font-medium mb-2">Filtrar por Status</label>
+                <select name="status" class="w-full px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition">
                     <option value="">Todos</option>
                     {% for s in statuses %}
                     <option value="{{ s }}">{{ s|capitalize }}</option>
@@ -36,27 +127,50 @@
 
             <!-- Min Score -->
             <div>
-                <label class="block text-gray-700 font-medium mb-2">Score Minimo</label>
+                <label class="block text-dark-text-primary font-medium mb-2">Score Mínimo</label>
                 <input type="number" name="min_score" min="0" max="100"
                        placeholder="Ex: 50"
-                       class="w-full px-4 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                       class="w-full px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:ring-2 focus:ring-accent-primary focus:border-accent-primary transition placeholder-dark-text-muted">
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
-                Exportar
+            <button type="submit" class="w-full bg-accent-primary text-white px-6 py-3 rounded-lg hover:bg-accent-primary/80 transition font-medium flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                <span>Exportar</span>
             </button>
         </form>
     </div>
 
     <!-- Info -->
-    <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-        <h3 class="font-medium mb-2">Colunas Exportadas:</h3>
-        <ul class="list-disc list-inside space-y-1">
-            <li>Nome, Endereco, Telefone, Website</li>
-            <li>Rating, Numero de Reviews</li>
-            <li>Lead Score, Status</li>
-            <li>Data de Descoberta, Link Google Maps</li>
-            <li>Notas</li>
+    <div class="bg-dark-surface border border-dark-border rounded-xl p-4">
+        <h3 class="font-medium text-dark-text-primary mb-3 flex items-center space-x-2">
+            <svg class="w-5 h-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Colunas Exportadas</span>
+        </h3>
+        <ul class="space-y-2 text-sm text-dark-text-secondary">
+            <li class="flex items-start space-x-2">
+                <span class="text-accent-primary mt-1">•</span>
+                <span>Nome, Endereço, Telefone, Website</span>
+            </li>
+            <li class="flex items-start space-x-2">
+                <span class="text-accent-primary mt-1">•</span>
+                <span>Rating, Número de Reviews</span>
+            </li>
+            <li class="flex items-start space-x-2">
+                <span class="text-accent-primary mt-1">•</span>
+                <span>Lead Score, Status</span>
+            </li>
+            <li class="flex items-start space-x-2">
+                <span class="text-accent-primary mt-1">•</span>
+                <span>Data de Descoberta, Link Google Maps</span>
+            </li>
+            <li class="flex items-start space-x-2">
+                <span class="text-accent-primary mt-1">•</span>
+                <span>Notas</span>
+            </li>
         </ul>
     </div>
 </div>

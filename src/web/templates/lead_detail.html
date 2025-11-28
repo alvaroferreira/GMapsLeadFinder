@@ -2,76 +2,78 @@
 
 {% block title %}{{ business.name }} - Lead Finder{% endblock %}
 
+{% block page_title %}{{ business.name }}{% endblock %}
+
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-6">
     <!-- Back -->
-    <a href="/leads" class="text-blue-600 hover:text-blue-800">&larr; Voltar aos Leads</a>
+    <a href="/leads" class="text-accent-primary hover:text-accent-primary/80">&larr; Voltar aos Leads</a>
 
     <!-- Header -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
         <div class="flex justify-between items-start">
             <div>
-                <h1 class="text-2xl font-bold text-gray-800">{{ business.name }}</h1>
-                <p class="text-gray-600 mt-1">{{ business.formatted_address or 'Sem endereco' }}</p>
+                <h1 class="text-2xl font-bold text-dark-text-primary">{{ business.name }}</h1>
+                <p class="text-dark-text-secondary mt-1">{{ business.formatted_address or 'Sem endereco' }}</p>
             </div>
             <div class="text-right">
                 <div class="text-4xl font-bold
-                    {% if business.lead_score >= 50 %}text-green-600
-                    {% elif business.lead_score >= 30 %}text-yellow-600
-                    {% else %}text-gray-600{% endif %}">
+                    {% if business.lead_score >= 50 %}text-accent-success
+                    {% elif business.lead_score >= 30 %}text-accent-warning
+                    {% else %}text-dark-text-muted{% endif %}">
                     {{ business.lead_score }}
                 </div>
-                <div class="text-gray-500 text-sm">Lead Score</div>
+                <div class="text-dark-text-muted text-sm">Lead Score</div>
             </div>
         </div>
 
         <!-- Quick Info -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
             <div>
-                <div class="text-gray-500 text-sm">Rating</div>
-                <div class="font-semibold">
+                <div class="text-dark-text-muted text-sm">Rating</div>
+                <div class="font-semibold text-dark-text-primary">
                     {% if business.rating %}
-                    <span class="text-yellow-500">★</span> {{ "%.1f"|format(business.rating) }}
+                    <span class="text-accent-warning">★</span> {{ "%.1f"|format(business.rating) }}
                     {% else %}-{% endif %}
                 </div>
             </div>
             <div>
-                <div class="text-gray-500 text-sm">Reviews</div>
-                <div class="font-semibold">{{ business.review_count or 0 }}</div>
+                <div class="text-dark-text-muted text-sm">Reviews</div>
+                <div class="font-semibold text-dark-text-primary">{{ business.review_count or 0 }}</div>
             </div>
             <div>
-                <div class="text-gray-500 text-sm">Website</div>
+                <div class="text-dark-text-muted text-sm">Website</div>
                 <div class="font-semibold">
                     {% if business.has_website %}
-                    <span class="text-green-600">Sim</span>
+                    <span class="text-accent-success">Sim</span>
                     {% else %}
-                    <span class="text-red-500">Nao</span>
+                    <span class="text-accent-danger">Nao</span>
                     {% endif %}
                 </div>
             </div>
             <div>
-                <div class="text-gray-500 text-sm">Status</div>
-                <div class="font-semibold capitalize">{{ business.lead_status }}</div>
+                <div class="text-dark-text-muted text-sm">Status</div>
+                <div class="font-semibold capitalize text-dark-text-primary">{{ business.lead_status }}</div>
             </div>
         </div>
     </div>
 
     <!-- Notion Integration -->
     {% if notion_active %}
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
         <div class="flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <svg class="w-6 h-6" viewBox="0 0 100 100" fill="none">
-                    <rect width="100" height="100" rx="10" fill="black"/>
-                    <path d="M21 81V19h38l20 20v42H21z" fill="white"/>
-                    <path d="M59 19v20h20" stroke="black" stroke-width="2"/>
+                    <rect width="100" height="100" rx="10" fill="white"/>
+                    <path d="M21 81V19h38l20 20v42H21z" fill="black"/>
+                    <path d="M59 19v20h20" stroke="white" stroke-width="2"/>
                 </svg>
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-800">Notion</h2>
+                    <h2 class="text-lg font-semibold text-dark-text-primary">Notion</h2>
                     {% if business.notion_synced_at %}
-                    <p class="text-sm text-gray-500">Sincronizado em {{ business.notion_synced_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                    <p class="text-sm text-dark-text-muted">Sincronizado em {{ business.notion_synced_at.strftime('%d/%m/%Y %H:%M') }}</p>
                     {% else %}
-                    <p class="text-sm text-gray-500">Nao sincronizado</p>
+                    <p class="text-sm text-dark-text-muted">Nao sincronizado</p>
                     {% endif %}
                 </div>
             </div>
@@ -79,7 +81,7 @@
                 {% if business.notion_page_id %}
                 <a href="https://notion.so/{{ business.notion_page_id.replace('-', '') }}"
                    target="_blank"
-                   class="text-gray-600 hover:text-gray-800 text-sm">
+                   class="text-dark-text-secondary hover:text-dark-text-primary text-sm">
                     Abrir no Notion
                 </a>
                 {% endif %}
@@ -102,48 +104,48 @@
     {% endif %}
 
     <!-- Contact Info -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold mb-4">Contactos</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <h2 class="text-lg font-semibold mb-4 text-dark-text-primary">Contactos</h2>
         <div class="space-y-3">
             {% if business.phone_number %}
             <div class="flex items-center">
-                <span class="text-gray-500 w-24">Telefone:</span>
-                <a href="tel:{{ business.phone_number }}" class="text-blue-600 hover:text-blue-800">{{ business.phone_number }}</a>
+                <span class="text-dark-text-muted w-24">Telefone:</span>
+                <a href="tel:{{ business.phone_number }}" class="text-accent-primary hover:text-accent-primary/80">{{ business.phone_number }}</a>
             </div>
             {% endif %}
             {% if business.website %}
             <div class="flex items-center">
-                <span class="text-gray-500 w-24">Website:</span>
-                <a href="{{ business.website }}" target="_blank" class="text-blue-600 hover:text-blue-800">{{ business.website[:50] }}{% if business.website|length > 50 %}...{% endif %}</a>
+                <span class="text-dark-text-muted w-24">Website:</span>
+                <a href="{{ business.website }}" target="_blank" class="text-accent-primary hover:text-accent-primary/80">{{ business.website[:50] }}{% if business.website|length > 50 %}...{% endif %}</a>
             </div>
             {% endif %}
             {% if business.google_maps_url %}
             <div class="flex items-center">
-                <span class="text-gray-500 w-24">Google Maps:</span>
-                <a href="{{ business.google_maps_url }}" target="_blank" class="text-blue-600 hover:text-blue-800">Abrir no Maps</a>
+                <span class="text-dark-text-muted w-24">Google Maps:</span>
+                <a href="{{ business.google_maps_url }}" target="_blank" class="text-accent-primary hover:text-accent-primary/80">Abrir no Maps</a>
             </div>
             {% endif %}
         </div>
     </div>
 
     <!-- Enriched Data -->
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold">Dados Enriquecidos</h2>
+            <h2 class="text-lg font-semibold text-dark-text-primary">Dados Enriquecidos</h2>
             <div class="flex items-center gap-2">
                 <span class="px-2 py-1 rounded text-sm
-                    {% if business.enrichment_status == 'completed' %}bg-green-100 text-green-800
-                    {% elif business.enrichment_status == 'failed' %}bg-red-100 text-red-800
-                    {% elif business.enrichment_status == 'in_progress' %}bg-yellow-100 text-yellow-800
-                    {% elif business.enrichment_status == 'no_website' %}bg-gray-100 text-gray-800
-                    {% else %}bg-blue-100 text-blue-800{% endif %}">
+                    {% if business.enrichment_status == 'completed' %}bg-accent-success/10 text-accent-success border border-accent-success/20
+                    {% elif business.enrichment_status == 'failed' %}bg-accent-danger/10 text-accent-danger border border-accent-danger/20
+                    {% elif business.enrichment_status == 'in_progress' %}bg-accent-warning/10 text-accent-warning border border-accent-warning/20
+                    {% elif business.enrichment_status == 'no_website' %}bg-dark-text-muted/10 text-dark-text-muted border border-dark-text-muted/20
+                    {% else %}bg-accent-primary/10 text-accent-primary border border-accent-primary/20{% endif %}">
                     {{ business.enrichment_status or 'pending' }}
                 </span>
                 {% if business.has_website and business.enrichment_status in ['pending', 'failed'] %}
                 <button hx-post="/enrichment/enrich/{{ business.id }}"
                         hx-target="#enrich-result"
                         hx-swap="innerHTML"
-                        class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">
+                        class="bg-accent-success text-white px-3 py-1 rounded text-sm hover:bg-accent-success/80">
                     <span class="htmx-indicator">
                         <svg class="animate-spin h-4 w-4 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -161,54 +163,66 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Emails -->
             <div>
-                <h3 class="font-medium text-gray-700 mb-2">Emails</h3>
+                <h3 class="font-medium text-dark-text-primary mb-2">Emails</h3>
                 {% if business.email %}
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
-                        <span class="text-green-600 font-medium">Principal:</span>
-                        <a href="mailto:{{ business.email }}" class="text-blue-600 hover:text-blue-800">{{ business.email }}</a>
+                        <span class="text-accent-success font-medium">Principal:</span>
+                        <a href="mailto:{{ business.email }}" class="text-accent-primary hover:text-accent-primary/80">{{ business.email }}</a>
                     </div>
                     {% if business.emails_scraped and business.emails_scraped|length > 1 %}
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-dark-text-muted">
                         Outros: {{ business.emails_scraped|join(', ') }}
                     </div>
                     {% endif %}
                 </div>
                 {% else %}
-                <span class="text-gray-500">Nenhum email encontrado</span>
+                <span class="text-dark-text-muted">Nenhum email encontrado</span>
                 {% endif %}
             </div>
 
             <!-- Social Media -->
             <div>
-                <h3 class="font-medium text-gray-700 mb-2">Redes Sociais</h3>
-                <div class="space-y-2">
+                <h3 class="font-medium text-dark-text-primary mb-2">Redes Sociais</h3>
+                <div class="flex flex-wrap gap-2">
                     {% if business.social_linkedin %}
-                    <div class="flex items-center gap-2">
-                        <span class="text-blue-700 font-medium">LinkedIn:</span>
-                        <a href="{{ business.social_linkedin }}" target="_blank" class="text-blue-600 hover:text-blue-800">Ver perfil</a>
-                    </div>
+                    <a href="{{ business.social_linkedin }}" target="_blank"
+                       class="flex items-center gap-2 bg-[#0077b5]/10 hover:bg-[#0077b5]/20 text-[#0077b5] px-3 py-2 rounded-lg transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                        LinkedIn
+                    </a>
                     {% endif %}
                     {% if business.social_facebook %}
-                    <div class="flex items-center gap-2">
-                        <span class="text-blue-600 font-medium">Facebook:</span>
-                        <a href="{{ business.social_facebook }}" target="_blank" class="text-blue-600 hover:text-blue-800">Ver pagina</a>
-                    </div>
+                    <a href="{{ business.social_facebook }}" target="_blank"
+                       class="flex items-center gap-2 bg-[#1877f2]/10 hover:bg-[#1877f2]/20 text-[#1877f2] px-3 py-2 rounded-lg transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Facebook
+                    </a>
                     {% endif %}
                     {% if business.social_instagram %}
-                    <div class="flex items-center gap-2">
-                        <span class="text-pink-600 font-medium">Instagram:</span>
-                        <a href="{{ business.social_instagram }}" target="_blank" class="text-blue-600 hover:text-blue-800">Ver perfil</a>
-                    </div>
+                    <a href="{{ business.social_instagram }}" target="_blank"
+                       class="flex items-center gap-2 bg-[#e4405f]/10 hover:bg-[#e4405f]/20 text-[#e4405f] px-3 py-2 rounded-lg transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                        </svg>
+                        Instagram
+                    </a>
                     {% endif %}
                     {% if business.social_twitter %}
-                    <div class="flex items-center gap-2">
-                        <span class="text-gray-800 font-medium">Twitter/X:</span>
-                        <a href="{{ business.social_twitter }}" target="_blank" class="text-blue-600 hover:text-blue-800">Ver perfil</a>
-                    </div>
+                    <a href="{{ business.social_twitter }}" target="_blank"
+                       class="flex items-center gap-2 bg-dark-text-primary/10 hover:bg-dark-text-primary/20 text-dark-text-primary px-3 py-2 rounded-lg transition">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        Twitter/X
+                    </a>
                     {% endif %}
                     {% if not business.social_linkedin and not business.social_facebook and not business.social_instagram and not business.social_twitter %}
-                    <span class="text-gray-500">Nenhuma rede social encontrada</span>
+                    <span class="text-dark-text-muted">Nenhuma rede social encontrada</span>
                     {% endif %}
                 </div>
             </div>
@@ -216,15 +230,15 @@
 
         <!-- Decision Makers -->
         {% if business.decision_makers and business.decision_makers|length > 0 %}
-        <div class="mt-6 pt-4 border-t">
-            <h3 class="font-medium text-gray-700 mb-2">Decisores</h3>
+        <div class="mt-6 pt-4 border-t border-dark-border">
+            <h3 class="font-medium text-dark-text-primary mb-2">Decisores</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {% for dm in business.decision_makers %}
-                <div class="bg-gray-50 p-3 rounded">
-                    <div class="font-medium text-gray-800">{{ dm.name }}</div>
-                    <div class="text-sm text-gray-500">{{ dm.role }}</div>
+                <div class="bg-dark-card-hover p-3 rounded border border-dark-border">
+                    <div class="font-medium text-dark-text-primary">{{ dm.name }}</div>
+                    <div class="text-sm text-dark-text-muted">{{ dm.role }}</div>
                     {% if dm.email %}
-                    <a href="mailto:{{ dm.email }}" class="text-sm text-blue-600">{{ dm.email }}</a>
+                    <a href="mailto:{{ dm.email }}" class="text-sm text-accent-primary hover:text-accent-primary/80">{{ dm.email }}</a>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -233,23 +247,23 @@
         {% endif %}
 
         {% if business.enriched_at %}
-        <div class="mt-4 text-sm text-gray-500">
+        <div class="mt-4 text-sm text-dark-text-muted">
             Enriquecido em: {{ business.enriched_at.strftime('%Y-%m-%d %H:%M') }}
         </div>
         {% endif %}
 
         {% elif business.enrichment_status == 'failed' %}
-        <div class="text-red-600">
+        <div class="text-accent-danger">
             Erro: {{ business.enrichment_error or 'Falha ao enriquecer dados' }}
         </div>
 
         {% elif business.enrichment_status == 'no_website' %}
-        <div class="text-gray-500">
+        <div class="text-dark-text-muted">
             Este negocio nao tem website. O enrichment nao e possivel.
         </div>
 
         {% else %}
-        <div class="text-gray-500">
+        <div class="text-dark-text-muted">
             {% if business.has_website %}
             Clica em "Enriquecer Agora" para extrair emails, redes sociais e decisores do website.
             {% else %}
@@ -260,21 +274,21 @@
     </div>
 
     <!-- Score Explanation -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold mb-4">Explicacao do Score</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <h2 class="text-lg font-semibold mb-4 text-dark-text-primary">Explicacao do Score</h2>
         <div class="space-y-2">
             {% for item in score_explanation %}
-            <div class="flex items-center justify-between py-2 border-b">
+            <div class="flex items-center justify-between py-2 border-b border-dark-border">
                 <div class="flex items-center">
                     {% if item.matched %}
-                    <span class="text-green-500 mr-2">✓</span>
-                    <span>{{ item.description }}</span>
+                    <span class="text-accent-success mr-2">✓</span>
+                    <span class="text-dark-text-primary">{{ item.description }}</span>
                     {% else %}
-                    <span class="text-gray-400 mr-2">○</span>
-                    <span class="text-gray-400">{{ item.description }}</span>
+                    <span class="text-dark-text-muted mr-2">○</span>
+                    <span class="text-dark-text-muted">{{ item.description }}</span>
                     {% endif %}
                 </div>
-                <span class="{% if item.matched %}text-green-600 font-medium{% else %}text-gray-400{% endif %}">
+                <span class="{% if item.matched %}text-accent-success font-medium{% else %}text-dark-text-muted{% endif %}">
                     +{{ item.points if item.matched else 0 }}
                 </span>
             </div>
@@ -283,37 +297,37 @@
     </div>
 
     <!-- Update Form -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold mb-4">Atualizar Lead</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <h2 class="text-lg font-semibold mb-4 text-dark-text-primary">Atualizar Lead</h2>
         <form method="post" action="/leads/{{ business.id }}/update" class="space-y-4">
             <div>
-                <label class="block text-gray-700 mb-2">Status</label>
-                <select name="status" class="w-full px-4 py-2 border rounded">
+                <label class="block text-dark-text-primary mb-2">Status</label>
+                <select name="status" class="w-full px-4 py-2 border border-dark-border rounded bg-dark-card text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent">
                     {% for s in statuses %}
                     <option value="{{ s }}" {% if business.lead_status == s %}selected{% endif %}>{{ s|capitalize }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div>
-                <label class="block text-gray-700 mb-2">Adicionar Nota</label>
+                <label class="block text-dark-text-primary mb-2">Adicionar Nota</label>
                 <textarea name="notes" rows="3" placeholder="Ex: Contactado por email em..."
-                          class="w-full px-4 py-2 border rounded"></textarea>
+                          class="w-full px-4 py-2 border border-dark-border rounded bg-dark-card text-white placeholder-dark-text-muted focus:ring-2 focus:ring-accent-primary focus:border-transparent"></textarea>
             </div>
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+            <button type="submit" class="bg-accent-primary text-white px-6 py-2 rounded hover:bg-accent-primary/80 transition">
                 Guardar
             </button>
         </form>
 
         {% if business.notes %}
-        <div class="mt-6 pt-6 border-t">
-            <h3 class="font-medium text-gray-700 mb-2">Notas</h3>
-            <pre class="text-gray-600 text-sm whitespace-pre-wrap bg-gray-50 p-4 rounded">{{ business.notes }}</pre>
+        <div class="mt-6 pt-6 border-t border-dark-border">
+            <h3 class="font-medium text-dark-text-primary mb-2">Notas</h3>
+            <pre class="text-dark-text-secondary text-sm whitespace-pre-wrap bg-dark-surface p-4 rounded">{{ business.notes }}</pre>
         </div>
         {% endif %}
     </div>
 
     <!-- Metadata -->
-    <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-500">
+    <div class="bg-dark-surface rounded-lg p-4 text-sm text-dark-text-muted">
         <div class="flex flex-wrap gap-4">
             <span>Place ID: {{ business.id }}</span>
             <span>Descoberto: {{ business.first_seen_at.strftime('%Y-%m-%d %H:%M') if business.first_seen_at else '-' }}</span>

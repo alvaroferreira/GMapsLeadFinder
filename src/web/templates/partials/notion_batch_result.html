@@ -1,29 +1,34 @@
-<div class="p-4 bg-gray-50 rounded-lg">
-    <h3 class="font-medium text-gray-800 mb-2">Sincronizacao Concluida</h3>
+<div class="bg-surface-elevated border border-surface-border rounded-lg p-4">
+    <h3 class="font-medium text-content-primary mb-4">Sincronizacao Concluida</h3>
 
     <div class="grid grid-cols-4 gap-4 mb-4">
         <div class="text-center">
-            <div class="text-xl font-bold text-blue-600">{{ total }}</div>
-            <div class="text-sm text-gray-500">Total</div>
+            <div class="text-xl font-bold text-accent-primary">{{ total }}</div>
+            <div class="text-sm text-content-secondary">Total</div>
         </div>
         <div class="text-center">
-            <div class="text-xl font-bold text-green-600">{{ created_count }}</div>
-            <div class="text-sm text-gray-500">Criados</div>
+            <div class="text-xl font-bold text-accent-success">{{ created_count }}</div>
+            <div class="text-sm text-content-secondary">Criados</div>
         </div>
         <div class="text-center">
-            <div class="text-xl font-bold text-yellow-600">{{ updated_count }}</div>
-            <div class="text-sm text-gray-500">Atualizados</div>
+            <div class="text-xl font-bold text-accent-warning">{{ updated_count }}</div>
+            <div class="text-sm text-content-secondary">Atualizados</div>
         </div>
         <div class="text-center">
-            <div class="text-xl font-bold text-red-600">{{ failed_count }}</div>
-            <div class="text-sm text-gray-500">Falhados</div>
+            <div class="text-xl font-bold text-accent-danger">{{ failed_count }}</div>
+            <div class="text-sm text-content-secondary">Falhados</div>
         </div>
     </div>
 
     {% if failed_count > 0 %}
-    <div class="mt-4 p-3 bg-red-50 rounded border border-red-200">
-        <h4 class="font-medium text-red-800 mb-2">Erros:</h4>
-        <ul class="text-sm text-red-700 space-y-1">
+    <div class="mt-4 bg-accent-danger/10 border border-accent-danger/20 rounded-lg p-3">
+        <h4 class="font-medium text-accent-danger mb-2 flex items-center">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+            Erros:
+        </h4>
+        <ul class="text-sm text-accent-danger space-y-1">
             {% for bid, result in results.items() %}
             {% if not result.success %}
             <li>{{ bid[:20] }}...: {{ result.error }}</li>

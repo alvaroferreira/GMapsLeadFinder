@@ -1,39 +1,161 @@
-<div class="bg-white rounded-lg shadow p-6 space-y-4">
-    <div class="flex items-center justify-between">
-        <h2 class="text-xl font-semibold text-gray-800">Resultados da Pesquisa</h2>
-        <span class="text-gray-500">Query: "{{ query }}"</span>
+<!-- Summary Header -->
+<div class="mb-4">
+    <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold text-dark-text-primary">Resultados da Pesquisa</h2>
+        <span class="text-sm text-dark-text-muted">Query: "{{ query }}"</span>
     </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-blue-50 rounded p-3 text-center">
-            <div class="text-2xl font-bold text-blue-600">{{ result.total_found }}</div>
-            <div class="text-gray-600 text-sm">Encontrados</div>
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <div class="bg-dark-card rounded-lg border border-dark-border p-3 text-center">
+            <div class="text-2xl font-bold text-accent-primary">{{ result.total_found }}</div>
+            <div class="text-dark-text-secondary text-xs">Encontrados</div>
         </div>
-        <div class="bg-green-50 rounded p-3 text-center">
-            <div class="text-2xl font-bold text-green-600">{{ result.new_businesses }}</div>
-            <div class="text-gray-600 text-sm">Novos</div>
+        <div class="bg-dark-card rounded-lg border border-dark-border p-3 text-center">
+            <div class="text-2xl font-bold text-accent-success">{{ result.new_businesses }}</div>
+            <div class="text-dark-text-secondary text-xs">Novos</div>
         </div>
-        <div class="bg-yellow-50 rounded p-3 text-center">
-            <div class="text-2xl font-bold text-yellow-600">{{ result.updated_businesses }}</div>
-            <div class="text-gray-600 text-sm">Atualizados</div>
+        <div class="bg-dark-card rounded-lg border border-dark-border p-3 text-center">
+            <div class="text-2xl font-bold text-accent-warning">{{ result.updated_businesses }}</div>
+            <div class="text-dark-text-secondary text-xs">Atualizados</div>
         </div>
-        <div class="bg-purple-50 rounded p-3 text-center">
-            <div class="text-2xl font-bold text-purple-600">{{ result.api_calls }}</div>
-            <div class="text-gray-600 text-sm">Chamadas API</div>
+        <div class="bg-dark-card rounded-lg border border-dark-border p-3 text-center">
+            <div class="text-2xl font-bold text-accent-info">{{ result.api_calls }}</div>
+            <div class="text-dark-text-secondary text-xs">Chamadas API</div>
         </div>
     </div>
 
     {% if result.filtered_out > 0 %}
-    <p class="text-gray-500">{{ result.filtered_out }} resultados filtrados pelos criterios definidos.</p>
+    <p class="text-sm text-dark-text-muted mb-3">{{ result.filtered_out }} resultados filtrados pelos critérios definidos.</p>
     {% endif %}
 
-    <div class="flex gap-4">
-        <a href="/leads" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
-            Ver Todos os Leads
-        </a>
-        <a href="/leads?status=new" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">
-            Ver Novos Leads
-        </a>
+    {% if leads %}
+    <p class="text-sm text-dark-text-secondary font-medium">{{ leads|length }} lead(s) encontrado(s)</p>
+    {% endif %}
+</div>
+
+<!-- Results Cards -->
+{% if leads %}
+<div class="space-y-3">
+    {% for lead in leads %}
+    <div
+        class="bg-dark-card rounded-lg border border-dark-border hover:border-accent-primary/50 transition-colors cursor-pointer p-4"
+        hx-get="/leads/{{ lead.id }}/drawer"
+        hx-target="#lead-drawer-content"
+        data-lead-id="{{ lead.id }}"
+        data-lead-lat="{{ lead.latitude }}"
+        data-lead-lng="{{ lead.longitude }}"
+        data-lead-name="{{ lead.name }}"
+        data-lead-score="{{ lead.lead_score or 0 }}"
+    >
+        <div class="flex items-start gap-4">
+            <!-- Numbered Badge -->
+            <div class="flex-shrink-0">
+                {% if lead.lead_score and lead.lead_score >= 50 %}
+                <div class="w-10 h-10 rounded-full bg-accent-success/20 border-2 border-accent-success flex items-center justify-center">
+                    <span class="text-accent-success font-bold text-sm">{{ loop.index }}</span>
+                </div>
+                {% elif lead.lead_score and lead.lead_score >= 30 %}
+                <div class="w-10 h-10 rounded-full bg-accent-warning/20 border-2 border-accent-warning flex items-center justify-center">
+                    <span class="text-accent-warning font-bold text-sm">{{ loop.index }}</span>
+                </div>
+                {% else %}
+                <div class="w-10 h-10 rounded-full bg-gray-700/50 border-2 border-gray-600 flex items-center justify-center">
+                    <span class="text-gray-400 font-bold text-sm">{{ loop.index }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 min-w-0">
+                <!-- Business Name -->
+                <h3 class="text-dark-text-primary font-semibold text-base mb-1 truncate">
+                    {{ lead.name }}
+                </h3>
+
+                <!-- Address -->
+                {% if lead.formatted_address %}
+                <p class="text-dark-text-secondary text-sm mb-2 truncate">
+                    {{ lead.formatted_address }}
+                </p>
+                {% endif %}
+
+                <!-- Rating and Lead Score -->
+                <div class="flex items-center gap-4 flex-wrap">
+                    <!-- Rating Stars -->
+                    {% if lead.rating %}
+                    <div class="flex items-center gap-1">
+                        {% set rating = lead.rating %}
+                        {% for i in range(5) %}
+                            {% if i < rating|int %}
+                                <svg class="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                </svg>
+                            {% elif i < rating %}
+                                <svg class="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 20 20">
+                                    <defs>
+                                        <linearGradient id="half-{{ loop.index }}-{{ i }}">
+                                            <stop offset="50%" stop-color="currentColor"/>
+                                            <stop offset="50%" stop-color="transparent"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path fill="url(#half-{{ loop.index }}-{{ i }})" d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                </svg>
+                            {% else %}
+                                <svg class="w-4 h-4 text-gray-600 fill-current" viewBox="0 0 20 20">
+                                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="text-dark-text-secondary text-sm ml-1">
+                            {{ "%.1f"|format(lead.rating) }}
+                            {% if lead.review_count %}
+                                ({{ lead.review_count }})
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Lead Score Badge -->
+                    {% if lead.lead_score %}
+                    <div class="flex items-center gap-1">
+                        {% if lead.lead_score >= 50 %}
+                        <span class="px-2 py-1 rounded-full bg-accent-success/20 text-accent-success text-xs font-semibold">
+                            Score: {{ lead.lead_score }}
+                        </span>
+                        {% elif lead.lead_score >= 30 %}
+                        <span class="px-2 py-1 rounded-full bg-accent-warning/20 text-accent-warning text-xs font-semibold">
+                            Score: {{ lead.lead_score }}
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-1 rounded-full bg-gray-700/50 text-gray-400 text-xs font-semibold">
+                            Score: {{ lead.lead_score }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-12 bg-dark-card rounded-lg border border-dark-border">
+    <svg class="w-16 h-16 mx-auto text-dark-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+    </svg>
+    <p class="text-dark-text-secondary text-lg mb-2">Nenhum resultado encontrado</p>
+    <p class="text-dark-text-muted text-sm">Tente ajustar os filtros de pesquisa</p>
+</div>
+{% endif %}
+
+<!-- Action Buttons -->
+<div class="mt-6 flex gap-3">
+    <a href="/leads" class="flex-1 bg-accent-primary text-white px-4 py-2.5 rounded-lg hover:bg-accent-primary/90 transition text-center font-medium">
+        Ver Todos os Leads
+    </a>
+    <a href="/leads?status=new" class="flex-1 bg-accent-success text-white px-4 py-2.5 rounded-lg hover:bg-accent-success/90 transition text-center font-medium">
+        Ver Novos Leads
+    </a>
 </div>

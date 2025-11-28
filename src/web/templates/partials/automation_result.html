@@ -1,9 +1,15 @@
 {% if result.status == 'success' %}
-<span class="text-green-600 text-sm">
-    ✓ {{ result.new_found }} novos ({{ result.total_found }} total)
-</span>
+<div class="bg-accent-success/10 border border-accent-success/20 text-accent-success rounded-lg p-3 text-sm">
+    <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    {{ result.new_found }} novos ({{ result.total_found }} total)
+</div>
 {% else %}
-<span class="text-red-600 text-sm" title="{{ result.error_message }}">
-    ✗ Erro: {{ result.error_message[:30] if result.error_message else 'Desconhecido' }}{% if result.error_message and result.error_message|length > 30 %}...{% endif %}
-</span>
+<div class="bg-accent-danger/10 border border-accent-danger/20 text-accent-danger rounded-lg p-3 text-sm" title="{{ result.error_message }}">
+    <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+    Erro: {{ result.error_message[:30] if result.error_message else 'Desconhecido' }}{% if result.error_message and result.error_message|length > 30 %}...{% endif %}
+</div>
 {% endif %}

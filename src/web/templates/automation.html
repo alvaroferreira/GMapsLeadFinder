@@ -1,60 +1,62 @@
 {% extends "base.html" %}
 
+{% block page_title %}Automacao{% endblock %}
+
 {% block title %}Automacao - Lead Finder{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">Automacao de Pesquisas</h1>
+        <h1 class="text-3xl font-bold text-dark-text-primary">Automacao de Pesquisas</h1>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Total Pesquisas</div>
-            <div class="text-2xl font-bold text-blue-600">{{ stats.total_searches }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+            <div class="text-dark-text-secondary text-sm">Total Pesquisas</div>
+            <div class="text-2xl font-bold text-blue-400">{{ stats.total_searches }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Ativas</div>
-            <div class="text-2xl font-bold text-green-600">{{ stats.active_searches }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+            <div class="text-dark-text-secondary text-sm">Ativas</div>
+            <div class="text-2xl font-bold text-green-400">{{ stats.active_searches }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Execucoes</div>
-            <div class="text-2xl font-bold text-purple-600">{{ stats.total_executions }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+            <div class="text-dark-text-secondary text-sm">Execucoes</div>
+            <div class="text-2xl font-bold text-purple-400">{{ stats.total_executions }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Notificacoes</div>
-            <div class="text-2xl font-bold text-yellow-600">{{ stats.total_notifications }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+            <div class="text-dark-text-secondary text-sm">Notificacoes</div>
+            <div class="text-2xl font-bold text-yellow-400">{{ stats.total_notifications }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Nao Lidas</div>
-            <div class="text-2xl font-bold text-red-600">{{ stats.unread_notifications }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+            <div class="text-dark-text-secondary text-sm">Nao Lidas</div>
+            <div class="text-2xl font-bold text-red-400">{{ stats.unread_notifications }}</div>
         </div>
     </div>
 
     <!-- Create New Search Form -->
-    <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Criar Nova Pesquisa Agendada</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border p-6">
+        <h2 class="text-xl font-semibold text-dark-text-primary mb-4">Criar Nova Pesquisa Agendada</h2>
         <form method="post" action="/automation/create" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Nome *</label>
+                    <label class="block text-dark-text-secondary text-sm mb-1">Nome *</label>
                     <input type="text" name="name" required placeholder="Ex: Restaurantes Lisboa"
-                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Query de Pesquisa *</label>
+                    <label class="block text-dark-text-secondary text-sm mb-1">Query de Pesquisa *</label>
                     <input type="text" name="query" required placeholder="Ex: restaurantes em Lisboa"
-                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Localizacao (lat,lng)</label>
+                    <label class="block text-dark-text-secondary text-sm mb-1">Localizacao (lat,lng)</label>
                     <input type="text" name="location" placeholder="Ex: 38.7223,-9.1393"
-                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Raio (metros)</label>
-                    <select name="radius" class="w-full px-3 py-2 border rounded">
+                    <label class="block text-dark-text-secondary text-sm mb-1">Raio (metros)</label>
+                    <select name="radius" class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                         <option value="1000">1 km</option>
                         <option value="2000">2 km</option>
                         <option value="5000" selected>5 km</option>
@@ -63,8 +65,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Intervalo</label>
-                    <select name="interval_hours" class="w-full px-3 py-2 border rounded">
+                    <label class="block text-dark-text-secondary text-sm mb-1">Intervalo</label>
+                    <select name="interval_hours" class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                         <option value="6">A cada 6 horas</option>
                         <option value="12">A cada 12 horas</option>
                         <option value="24" selected>Diariamente</option>
@@ -73,17 +75,17 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-gray-700 text-sm mb-1">Score Minimo Notificacao</label>
+                    <label class="block text-dark-text-secondary text-sm mb-1">Score Minimo Notificacao</label>
                     <input type="number" name="notify_threshold_score" value="50" min="0" max="100"
-                           class="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
                 </div>
             </div>
             <div class="flex items-center gap-4">
                 <label class="flex items-center gap-2">
                     <input type="checkbox" name="notify_on_new" value="true" checked class="rounded">
-                    <span class="text-gray-700">Notificar novos leads</span>
+                    <span class="text-dark-text-secondary">Notificar novos leads</span>
                 </label>
-                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                <button type="submit" class="bg-accent-primary hover:bg-accent-primary/80 text-white px-6 py-2 rounded-lg">
                     Criar Pesquisa
                 </button>
             </div>
@@ -91,61 +93,61 @@
     </div>
 
     <!-- Tracked Searches List -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-4 py-3 bg-gray-50 border-b">
-            <h2 class="text-lg font-semibold text-gray-800">Pesquisas Agendadas</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+        <div class="px-4 py-3 bg-dark-surface border-b border-dark-border">
+            <h2 class="text-lg font-semibold text-dark-text-primary">Pesquisas Agendadas</h2>
         </div>
         <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-dark-surface">
                 <tr>
-                    <th class="px-4 py-3 text-left text-gray-600">Nome</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Query</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Intervalo</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Ultima Execucao</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Proxima</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Total Novos</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Status</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Acoes</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Nome</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Query</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Intervalo</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Ultima Execucao</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Proxima</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Total Novos</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Status</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Acoes</th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
+            <tbody class="divide-y divide-dark-border">
                 {% for search in searches %}
-                <tr class="hover:bg-gray-50" id="search-{{ search.id }}">
-                    <td class="px-4 py-3 font-medium text-gray-800">{{ search.name }}</td>
-                    <td class="px-4 py-3 text-gray-600 text-sm">
+                <tr class="hover:bg-dark-card-hover" id="search-{{ search.id }}">
+                    <td class="px-4 py-3 font-medium text-dark-text-primary">{{ search.name }}</td>
+                    <td class="px-4 py-3 text-dark-text-secondary text-sm">
                         {{ search.query_params.query[:30] if search.query_params else '-' }}{% if search.query_params and search.query_params.query|length > 30 %}...{% endif %}
                     </td>
-                    <td class="px-4 py-3">{{ search.interval_hours }}h</td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
+                    <td class="px-4 py-3 text-dark-text-primary">{{ search.interval_hours }}h</td>
+                    <td class="px-4 py-3 text-sm text-dark-text-muted">
                         {{ search.last_run_at.strftime('%d/%m %H:%M') if search.last_run_at else 'Nunca' }}
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">
+                    <td class="px-4 py-3 text-sm text-dark-text-muted">
                         {{ search.next_run_at.strftime('%d/%m %H:%M') if search.next_run_at else '-' }}
                     </td>
                     <td class="px-4 py-3">
-                        <span class="text-green-600 font-medium">{{ search.total_new_found }}</span>
-                        <span class="text-gray-400 text-sm">({{ search.total_runs }} runs)</span>
+                        <span class="text-green-400 font-medium">{{ search.total_new_found }}</span>
+                        <span class="text-dark-text-muted text-sm">({{ search.total_runs }} runs)</span>
                     </td>
                     <td class="px-4 py-3">
                         {% if search.is_active %}
-                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">Ativo</span>
+                        <span class="px-2 py-1 bg-accent-success/20 text-accent-success rounded text-sm">Ativo</span>
                         {% else %}
-                        <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-sm">Inativo</span>
+                        <span class="px-2 py-1 bg-dark-text-muted/20 text-dark-text-muted rounded text-sm">Inativo</span>
                         {% endif %}
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex gap-2">
                             <button hx-post="/automation/{{ search.id }}/run-now"
                                     hx-target="#run-result-{{ search.id }}"
-                                    class="text-blue-600 hover:text-blue-800 text-sm">
+                                    class="bg-accent-secondary hover:bg-accent-secondary/80 text-white px-2 py-1 rounded text-sm">
                                 Executar
                             </button>
-                            <a href="/automation/logs/{{ search.id }}" class="text-gray-600 hover:text-gray-800 text-sm">
+                            <a href="/automation/logs/{{ search.id }}" class="text-accent-primary hover:text-accent-primary/80 text-sm px-2 py-1">
                                 Logs
                             </a>
                             <form method="post" action="/automation/{{ search.id }}/delete" class="inline"
                                   onsubmit="return confirm('Apagar esta pesquisa?')">
-                                <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
+                                <button type="submit" class="text-accent-danger hover:text-accent-danger/80 text-sm px-2 py-1">
                                     Apagar
                                 </button>
                             </form>
@@ -155,7 +157,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                    <td colspan="8" class="px-4 py-8 text-center text-dark-text-muted">
                         Nenhuma pesquisa agendada. Cria uma acima para comecar.
                     </td>
                 </tr>
@@ -166,36 +168,36 @@
 
     <!-- Recent Logs -->
     {% if recent_logs %}
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="px-4 py-3 bg-gray-50 border-b">
-            <h2 class="text-lg font-semibold text-gray-800">Execucoes Recentes</h2>
+    <div class="bg-dark-card rounded-xl border border-dark-border overflow-hidden">
+        <div class="px-4 py-3 bg-dark-surface border-b border-dark-border">
+            <h2 class="text-lg font-semibold text-dark-text-primary">Execucoes Recentes</h2>
         </div>
         <table class="w-full">
-            <thead class="bg-gray-50">
+            <thead class="bg-dark-surface">
                 <tr>
-                    <th class="px-4 py-3 text-left text-gray-600">Data</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Total</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Novos</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Duracao</th>
-                    <th class="px-4 py-3 text-left text-gray-600">Status</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Data</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Total</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Novos</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Duracao</th>
+                    <th class="px-4 py-3 text-left text-dark-text-secondary">Status</th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
+            <tbody class="divide-y divide-dark-border">
                 {% for log in recent_logs %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 text-sm">{{ log.executed_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                    <td class="px-4 py-3">{{ log.total_found }}</td>
+                <tr class="hover:bg-dark-card-hover">
+                    <td class="px-4 py-3 text-sm text-dark-text-primary">{{ log.executed_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="px-4 py-3 text-dark-text-primary">{{ log.total_found }}</td>
                     <td class="px-4 py-3">
-                        <span class="{% if log.new_found > 0 %}text-green-600 font-medium{% else %}text-gray-500{% endif %}">
+                        <span class="{% if log.new_found > 0 %}text-green-400 font-medium{% else %}text-dark-text-muted{% endif %}">
                             {{ log.new_found }}
                         </span>
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-500">{{ "%.1f"|format(log.duration_seconds) }}s</td>
+                    <td class="px-4 py-3 text-sm text-dark-text-muted">{{ "%.1f"|format(log.duration_seconds) }}s</td>
                     <td class="px-4 py-3">
                         {% if log.status == 'success' %}
-                        <span class="text-green-600">Sucesso</span>
+                        <span class="px-2 py-1 bg-accent-success/20 text-accent-success rounded text-sm">Sucesso</span>
                         {% else %}
-                        <span class="text-red-600">Falhou</span>
+                        <span class="px-2 py-1 bg-accent-danger/20 text-accent-danger rounded text-sm">Falhou</span>
                         {% endif %}
                     </td>
                 </tr>

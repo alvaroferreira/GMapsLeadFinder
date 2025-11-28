@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 
+{% block page_title %}Notificacoes{% endblock %}
+
 {% block title %}Notificacoes - Lead Finder{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-800">Notificacoes</h1>
+        <h1 class="text-3xl font-bold text-dark-text-primary">Notificacoes</h1>
         <div class="flex gap-2">
             <form method="post" action="/notifications/read-all" class="inline">
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <button type="submit" class="bg-accent-primary text-white px-4 py-2 rounded hover:bg-accent-primary/80 transition-colors">
                     Marcar Todas como Lidas
                 </button>
             </form>
@@ -17,73 +19,82 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Total</div>
-            <div class="text-2xl font-bold text-blue-600">{{ stats.total }}</div>
+        <div class="bg-dark-card rounded-lg shadow p-4">
+            <div class="text-dark-text-muted text-sm">Total</div>
+            <div class="text-2xl font-bold text-accent-primary">{{ stats.total }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Nao Lidas</div>
-            <div class="text-2xl font-bold text-red-600">{{ stats.unread }}</div>
+        <div class="bg-dark-card rounded-lg shadow p-4">
+            <div class="text-dark-text-muted text-sm">Nao Lidas</div>
+            <div class="text-2xl font-bold text-accent-danger">{{ stats.unread }}</div>
         </div>
-        <div class="bg-white rounded-lg shadow p-4">
-            <div class="text-gray-500 text-sm">Lidas</div>
-            <div class="text-2xl font-bold text-green-600">{{ stats.read }}</div>
+        <div class="bg-dark-card rounded-lg shadow p-4">
+            <div class="text-dark-text-muted text-sm">Lidas</div>
+            <div class="text-2xl font-bold text-accent-success">{{ stats.read }}</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-white rounded-lg shadow p-4">
+    <div class="bg-dark-card rounded-lg shadow p-4">
         <form method="get" action="/notifications" class="flex gap-4 items-center">
             <label class="flex items-center gap-2">
                 <input type="checkbox" name="unread_only" value="true"
                        {% if unread_only %}checked{% endif %}
-                       class="rounded" onchange="this.form.submit()">
-                <span class="text-gray-700">Apenas nao lidas</span>
+                       class="rounded bg-dark-surface border-dark-border text-accent-primary focus:ring-accent-primary" onchange="this.form.submit()">
+                <span class="text-dark-text-secondary">Apenas nao lidas</span>
             </label>
         </form>
     </div>
 
     <!-- Notifications List -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="divide-y">
+    <div class="bg-dark-card rounded-lg shadow overflow-hidden">
+        <div class="divide-y divide-dark-border">
             {% for notification in notifications %}
-            <div class="p-4 hover:bg-gray-50 {% if not notification.is_read %}bg-blue-50{% endif %}"
+            <div class="p-4 hover:bg-dark-card-hover transition-colors {% if not notification.is_read %}bg-dark-card border-l-4 border-accent-primary{% else %}bg-dark-surface border-l-4 border-dark-border{% endif %}"
                  id="notification-{{ notification.id }}">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             {% if notification.type == 'new_lead' %}
-                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Novo Lead</span>
+                            <span class="px-2 py-1 bg-accent-success/20 text-accent-success rounded text-xs font-medium flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-accent-success rounded-full"></span>
+                                Novo Lead
+                            </span>
                             {% elif notification.type == 'high_score' %}
-                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs">Score Alto</span>
+                            <span class="px-2 py-1 bg-accent-warning/20 text-accent-warning rounded text-xs font-medium flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-accent-warning rounded-full"></span>
+                                Score Alto
+                            </span>
                             {% elif notification.type == 'batch_complete' %}
-                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Pesquisa</span>
+                            <span class="px-2 py-1 bg-accent-primary/20 text-accent-primary rounded text-xs font-medium flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-accent-primary rounded-full"></span>
+                                Pesquisa
+                            </span>
                             {% else %}
-                            <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">{{ notification.type }}</span>
+                            <span class="px-2 py-1 bg-dark-surface text-dark-text-secondary rounded text-xs font-medium">{{ notification.type }}</span>
                             {% endif %}
 
                             {% if not notification.is_read %}
-                            <span class="w-2 h-2 bg-blue-600 rounded-full"></span>
+                            <span class="w-2 h-2 bg-accent-primary rounded-full"></span>
                             {% endif %}
                         </div>
 
-                        <h3 class="text-lg font-medium text-gray-800 mt-2">{{ notification.title }}</h3>
+                        <h3 class="text-lg font-medium text-dark-text-primary mt-2">{{ notification.title }}</h3>
 
                         {% if notification.message %}
-                        <p class="text-gray-600 mt-1">{{ notification.message }}</p>
+                        <p class="text-dark-text-secondary mt-1">{{ notification.message }}</p>
                         {% endif %}
 
-                        <div class="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                        <div class="flex items-center gap-4 mt-2 text-sm text-dark-text-muted">
                             <span>{{ notification.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
 
                             {% if notification.business_id %}
-                            <a href="/leads/{{ notification.business_id }}" class="text-blue-600 hover:underline">
+                            <a href="/leads/{{ notification.business_id }}" class="text-accent-primary hover:text-accent-primary/80 transition-colors">
                                 Ver Lead
                             </a>
                             {% endif %}
 
                             {% if notification.tracked_search_id %}
-                            <a href="/automation/logs/{{ notification.tracked_search_id }}" class="text-blue-600 hover:underline">
+                            <a href="/automation/logs/{{ notification.tracked_search_id }}" class="text-accent-primary hover:text-accent-primary/80 transition-colors">
                                 Ver Logs
                             </a>
                             {% endif %}
@@ -93,7 +104,7 @@
                     <div class="flex gap-2 ml-4">
                         {% if not notification.is_read %}
                         <form method="post" action="/notifications/{{ notification.id }}/read" class="inline">
-                            <button type="submit" class="text-blue-600 hover:text-blue-800 text-sm">
+                            <button type="submit" class="text-dark-text-muted hover:text-white text-sm transition-colors">
                                 Marcar Lida
                             </button>
                         </form>
@@ -101,7 +112,7 @@
 
                         <form method="post" action="/notifications/{{ notification.id }}/delete" class="inline"
                               onsubmit="return confirm('Apagar esta notificacao?')">
-                            <button type="submit" class="text-red-600 hover:text-red-800 text-sm">
+                            <button type="submit" class="text-accent-danger hover:text-accent-danger/80 text-sm transition-colors">
                                 Apagar
                             </button>
                         </form>
@@ -109,12 +120,19 @@
                 </div>
             </div>
             {% else %}
-            <div class="p-8 text-center text-gray-500">
-                {% if unread_only %}
-                Nenhuma notificacao por ler.
-                {% else %}
-                Nenhuma notificacao.
-                {% endif %}
+            <div class="p-8 text-center">
+                <div class="flex flex-col items-center justify-center gap-3">
+                    <svg class="w-16 h-16 text-dark-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    <p class="text-dark-text-muted">
+                        {% if unread_only %}
+                        Nenhuma notificacao por ler.
+                        {% else %}
+                        Nenhuma notificacao.
+                        {% endif %}
+                    </p>
+                </div>
             </div>
             {% endfor %}
         </div>

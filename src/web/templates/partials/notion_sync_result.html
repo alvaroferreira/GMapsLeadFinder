@@ -1,13 +1,19 @@
 {% if result.success %}
-<span class="text-green-600 text-sm">
+<div class="bg-accent-success/10 border border-accent-success/20 text-accent-success rounded-lg p-3 text-sm">
+    <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
     {% if result.action == 'created' %}
-    ✓ Criado no Notion
+    Criado no Notion
     {% else %}
-    ✓ Atualizado no Notion
+    Atualizado no Notion
     {% endif %}
-</span>
+</div>
 {% else %}
-<span class="text-red-600 text-sm" title="{{ result.error }}">
-    ✗ {{ result.error[:40] if result.error else 'Erro' }}{% if result.error and result.error|length > 40 %}...{% endif %}
-</span>
+<div class="bg-accent-danger/10 border border-accent-danger/20 text-accent-danger rounded-lg p-3 text-sm" title="{{ result.error }}">
+    <svg class="inline-block w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+    {{ result.error[:40] if result.error else 'Erro' }}{% if result.error and result.error|length > 40 %}...{% endif %}
+</div>
 {% endif %}
