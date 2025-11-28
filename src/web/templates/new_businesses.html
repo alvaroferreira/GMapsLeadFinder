@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block page_title %}Novos Negócios{% endblock %}
+{% block title %}Novos Negócios - Geoscout Pro{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header com título e filtros de dias -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-dark-text-primary">Novos Negócios</h1>
+            <p class="text-dark-text-secondary">Negócios descobertos nos últimos {{ days }} dias</p>
+        </div>
+        <div class="flex gap-2">
+            <!-- Presets de dias como links/chips -->
+            <a href="?days=1"
+               class="px-4 py-2 rounded-lg text-sm font-medium transition {% if days == 1 %}bg-accent-primary text-white{% else %}bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover{% endif %}">
+                Hoje
+            </a>
+            <a href="?days=7"
+               class="px-4 py-2 rounded-lg text-sm font-medium transition {% if days == 7 %}bg-accent-primary text-white{% else %}bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover{% endif %}">
+                7 dias
+            </a>
+            <a href="?days=30"
+               class="px-4 py-2 rounded-lg text-sm font-medium transition {% if days == 30 %}bg-accent-primary text-white{% else %}bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover{% endif %}">
+                30 dias
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards (3 colunas) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+            <div class="text-3xl font-bold text-accent-primary">{{ stats.total_new }}</div>
+            <div class="text-sm text-dark-text-muted mt-1">Total descobertos</div>
+        </div>
+        <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+            <div class="text-3xl font-bold text-accent-success">{{ stats.high_score }}</div>
+            <div class="text-sm text-dark-text-muted mt-1">Score >= 70</div>
+        </div>
+        <div class="bg-dark-card rounded-xl p-6 border border-dark-border">
+            <div class="text-3xl font-bold text-accent-warning">{{ stats.with_website }}</div>
+            <div class="text-sm text-dark-text-muted mt-1">Com website</div>
+        </div>
+    </div>
+
+    <!-- Grid de Cards de leads -->
+    {% if businesses %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {% for business in businesses %}
+        <!-- Card idêntico ao leads.html -->
+        <div class="bg-dark-card rounded-xl border border-dark-border p-4 hover:border-accent-primary transition cursor-pointer"
+             hx-get="/leads/{{ business.id }}/drawer"
+             hx-target="#lead-drawer-content"
+             hx-swap="innerHTML"
+             onclick="openLeadDrawer()">
+            <!-- Avatar com inicial -->
+            <div class="flex items-start gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-accent-primary to-accent-secondary flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    {{ business.name[0] | upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-dark-text-primary truncate">{{ business.name }}</h3>
+                    <p class="text-sm text-dark-text-muted truncate">{{ business.formatted_address }}</p>
+                </div>
+            </div>
+
+            <!-- Rating e Score -->
+            <div class="flex items-center justify-between mt-4">
+                <div class="flex items-center gap-1">
+                    <span class="text-yellow-400">★</span>
+                    <span class="text-sm text-dark-text-secondary">{{ business.rating or '-' }}</span>
+                    <span class="text-dark-text-muted text-xs">({{ business.review_count }})</span>
+                </div>
+                <div class="px-2 py-1 rounded-full text-xs font-medium {% if business.lead_score >= 70 %}bg-accent-success/20 text-accent-success{% elif business.lead_score >= 40 %}bg-accent-warning/20 text-accent-warning{% else %}bg-dark-surface text-dark-text-muted{% endif %}">
+                    {{ business.lead_score }}
+                </div>
+            </div>
+
+            <!-- Data de descoberta -->
+            <div class="mt-3 pt-3 border-t border-dark-border">
+                <div class="flex items-center gap-2 text-xs text-dark-text-muted">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>{{ business.first_seen_at.strftime('%d/%m/%Y %H:%M') if business.first_seen_at else 'N/A' }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Estado vazio -->
+    <div class="bg-dark-card rounded-xl p-12 text-center border border-dark-border">
+        <svg class="w-16 h-16 mx-auto text-dark-text-muted mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+        </svg>
+        <h3 class="text-xl font-semibold text-dark-text-primary mb-2">Nenhum negócio encontrado</h3>
+        <p class="text-dark-text-secondary mb-6">Não foram descobertos novos negócios nos últimos {{ days }} dias.</p>
+        <a href="/search" class="inline-block px-6 py-2 bg-accent-primary hover:bg-accent-primary/80 text-white rounded-lg transition font-medium">
+            Fazer nova pesquisa
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Drawer de detalhes do lead (reutilizado do leads.html) -->
+<div id="lead-drawer" class="fixed inset-y-0 right-0 w-full md:w-2/3 lg:w-1/2 bg-dark-surface transform translate-x-full transition-transform duration-300 ease-in-out z-50 shadow-2xl overflow-y-auto">
+    <div id="lead-drawer-content">
+        <!-- Conteúdo carregado via HTMX -->
+    </div>
+</div>
+
+<!-- Overlay do drawer -->
+<div id="drawer-overlay" class="fixed inset-0 bg-black/50 hidden z-40" onclick="closeLeadDrawer()"></div>
+
+<script>
+function openLeadDrawer() {
+    const drawer = document.getElementById('lead-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    drawer.classList.remove('translate-x-full');
+    overlay.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLeadDrawer() {
+    const drawer = document.getElementById('lead-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    drawer.classList.add('translate-x-full');
+    overlay.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Fechar com ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLeadDrawer();
+    }
+});
+</script>
+{% endblock %}

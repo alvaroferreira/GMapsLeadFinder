@@ -15,14 +15,14 @@
     </div>
 
     <!-- Active Filters Chips -->
-    {% if current_status or current_min_score or current_has_website %}
+    {% if current_status or current_min_score or current_has_website or current_date_from or current_date_to %}
     <div class="flex flex-wrap gap-2 items-center">
         <span class="text-sm text-dark-text-secondary">Filtros ativos:</span>
 
         {% if current_status %}
         <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
             <span class="text-sm text-dark-text-primary">Status: {{ current_status|capitalize }}</span>
-            <a href="?{% if current_min_score %}min_score={{ current_min_score }}{% endif %}{% if current_has_website %}{% if current_min_score %}&{% endif %}has_website={{ current_has_website }}{% endif %}"
+            <a href="?{% if current_min_score %}min_score={{ current_min_score }}{% endif %}{% if current_has_website %}{% if current_min_score %}&{% endif %}has_website={{ current_has_website }}{% endif %}{% if current_date_from %}{% if current_min_score or current_has_website %}&{% endif %}date_from={{ current_date_from }}{% endif %}{% if current_date_to %}{% if current_min_score or current_has_website or current_date_from %}&{% endif %}date_to={{ current_date_to }}{% endif %}"
                class="text-dark-text-muted hover:text-accent-danger transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -34,7 +34,7 @@
         {% if current_min_score %}
         <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
             <span class="text-sm text-dark-text-primary">Score Min: {{ current_min_score }}</span>
-            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_has_website %}{% if current_status %}&{% endif %}has_website={{ current_has_website }}{% endif %}"
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_has_website %}{% if current_status %}&{% endif %}has_website={{ current_has_website }}{% endif %}{% if current_date_from %}{% if current_status or current_has_website %}&{% endif %}date_from={{ current_date_from }}{% endif %}{% if current_date_to %}{% if current_status or current_has_website or current_date_from %}&{% endif %}date_to={{ current_date_to }}{% endif %}"
                class="text-dark-text-muted hover:text-accent-danger transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -46,7 +46,31 @@
         {% if current_has_website %}
         <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
             <span class="text-sm text-dark-text-primary">Website: {% if current_has_website == 'yes' %}Com{% else %}Sem{% endif %}</span>
-            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_min_score %}{% if current_status %}&{% endif %}min_score={{ current_min_score }}{% endif %}"
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_min_score %}{% if current_status %}&{% endif %}min_score={{ current_min_score }}{% endif %}{% if current_date_from %}{% if current_status or current_min_score %}&{% endif %}date_from={{ current_date_from }}{% endif %}{% if current_date_to %}{% if current_status or current_min_score or current_date_from %}&{% endif %}date_to={{ current_date_to }}{% endif %}"
+               class="text-dark-text-muted hover:text-accent-danger transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_date_from %}
+        <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
+            <span class="text-sm text-dark-text-primary">De: {{ current_date_from }}</span>
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_min_score %}{% if current_status %}&{% endif %}min_score={{ current_min_score }}{% endif %}{% if current_has_website %}{% if current_status or current_min_score %}&{% endif %}has_website={{ current_has_website }}{% endif %}{% if current_date_to %}{% if current_status or current_min_score or current_has_website %}&{% endif %}date_to={{ current_date_to }}{% endif %}"
+               class="text-dark-text-muted hover:text-accent-danger transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if current_date_to %}
+        <div class="flex items-center gap-2 bg-dark-card border border-dark-border rounded-lg px-3 py-1.5">
+            <span class="text-sm text-dark-text-primary">Ate: {{ current_date_to }}</span>
+            <a href="?{% if current_status %}status={{ current_status }}{% endif %}{% if current_min_score %}{% if current_status %}&{% endif %}min_score={{ current_min_score }}{% endif %}{% if current_has_website %}{% if current_status or current_min_score %}&{% endif %}has_website={{ current_has_website }}{% endif %}{% if current_date_from %}{% if current_status or current_min_score or current_has_website %}&{% endif %}date_from={{ current_date_from }}{% endif %}"
                class="text-dark-text-muted hover:text-accent-danger transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -111,6 +135,49 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Date Filters -->
+    <div class="flex flex-wrap items-center gap-4 p-4 bg-dark-surface rounded-lg border border-dark-border mb-6">
+        <span class="text-sm text-dark-text-secondary font-medium">Descobertos:</span>
+
+        <!-- Presets -->
+        <div class="flex gap-1">
+            <a href="?{{ 'status=' + current_status if current_status else '' }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium transition {% if not current_date_from and not current_date_to %}bg-accent-primary text-white{% else %}bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover{% endif %}">
+                Todos
+            </a>
+            <a href="?date_from={{ today }}&date_to={{ today }}{{ '&status=' + current_status if current_status else '' }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover">
+                Hoje
+            </a>
+            <a href="?date_from={{ seven_days_ago }}{{ '&status=' + current_status if current_status else '' }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover">
+                7 dias
+            </a>
+            <a href="?date_from={{ thirty_days_ago }}{{ '&status=' + current_status if current_status else '' }}"
+               class="px-3 py-1.5 rounded-lg text-xs font-medium transition bg-dark-card text-dark-text-secondary hover:bg-dark-card-hover">
+                30 dias
+            </a>
+        </div>
+
+        <!-- Date Inputs -->
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-dark-text-muted">De:</label>
+            <input type="date"
+                   name="date_from"
+                   value="{{ current_date_from or '' }}"
+                   onchange="applyDateFilter()"
+                   class="px-3 py-1.5 bg-dark-card border border-dark-border rounded-lg text-sm text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary">
+        </div>
+        <div class="flex items-center gap-2">
+            <label class="text-sm text-dark-text-muted">Ate:</label>
+            <input type="date"
+                   name="date_to"
+                   value="{{ current_date_to or '' }}"
+                   onchange="applyDateFilter()"
+                   class="px-3 py-1.5 bg-dark-card border border-dark-border rounded-lg text-sm text-dark-text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary">
+        </div>
+    </div>
 
     <!-- Leads Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -235,6 +302,13 @@
                             {% else %}bg-dark-border/20 text-dark-text-muted{% endif %}">
                             {{ b['lead_status']|capitalize }}
                         </span>
+
+                        <!-- Enrichment Status -->
+                        {% if b['enrichment_status'] == 'completed' %}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-accent-success/20 text-accent-success">Enriquecido</span>
+                        {% elif b['has_website'] and b['enrichment_status'] == 'pending' %}
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-accent-warning/20 text-accent-warning">Por enriquecer</span>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -307,7 +381,7 @@
     {% if total_pages > 1 %}
     <div class="flex justify-center gap-2 items-center mt-8">
         {% if page > 1 %}
-        <a href="?page={{ page - 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_min_score %}&min_score={{ current_min_score }}{% endif %}{% if current_has_website %}&has_website={{ current_has_website }}{% endif %}"
+        <a href="?page={{ page - 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_min_score %}&min_score={{ current_min_score }}{% endif %}{% if current_has_website %}&has_website={{ current_has_website }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
            class="px-4 py-2 bg-dark-card border border-dark-border rounded-lg hover:bg-dark-card-hover hover:border-accent-primary/50 text-dark-text-primary transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -322,7 +396,7 @@
         </div>
 
         {% if page < total_pages %}
-        <a href="?page={{ page + 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_min_score %}&min_score={{ current_min_score }}{% endif %}{% if current_has_website %}&has_website={{ current_has_website }}{% endif %}"
+        <a href="?page={{ page + 1 }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_min_score %}&min_score={{ current_min_score }}{% endif %}{% if current_has_website %}&has_website={{ current_has_website }}{% endif %}{% if current_date_from %}&date_from={{ current_date_from }}{% endif %}{% if current_date_to %}&date_to={{ current_date_to }}{% endif %}"
            class="px-4 py-2 bg-dark-card border border-dark-border rounded-lg hover:bg-dark-card-hover hover:border-accent-primary/50 text-dark-text-primary transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -332,6 +406,23 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+function applyDateFilter() {
+    const dateFrom = document.querySelector('input[name="date_from"]').value;
+    const dateTo = document.querySelector('input[name="date_to"]').value;
+    const params = new URLSearchParams(window.location.search);
+
+    if (dateFrom) params.set('date_from', dateFrom);
+    else params.delete('date_from');
+
+    if (dateTo) params.set('date_to', dateTo);
+    else params.delete('date_to');
+
+    params.delete('page'); // Reset pagination
+    window.location.search = params.toString();
+}
+</script>
 
 {% if notion_active %}
 <script>

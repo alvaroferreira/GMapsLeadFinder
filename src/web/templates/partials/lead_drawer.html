@@ -2,9 +2,9 @@
 <div class="flex flex-col h-full">
     <!-- Drawer Header -->
     <div class="p-4 border-b border-dark-border flex items-center justify-between flex-shrink-0">
-        <h2 class="text-lg font-semibold">Detalhes do Lead</h2>
-        <button onclick="closeLeadDrawer()" class="p-2 hover:bg-dark-card rounded-lg transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <h2 id="drawer-title" class="text-lg font-semibold">Detalhes do Lead</h2>
+        <button onclick="closeLeadDrawer()" class="p-2 hover:bg-dark-card rounded-lg transition" aria-label="Fechar detalhes do lead">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
@@ -86,12 +86,12 @@
 
         <!-- Contact Details Section -->
         <div class="p-4 border-b border-dark-border">
-            <h4 class="text-sm font-semibold text-dark-text-secondary uppercase tracking-wider mb-3">Contactos</h4>
-            <div class="space-y-2">
+            <h3 class="text-sm font-semibold text-dark-text-secondary uppercase tracking-wider mb-3">Contactos</h3>
+            <div class="space-y-2" role="list">
                 {% if business.phone_number %}
-                <a href="tel:{{ business.phone_number }}" class="flex items-center gap-3 p-3 rounded-lg bg-dark-card hover:bg-dark-card-hover transition">
-                    <div class="w-10 h-10 rounded-lg bg-accent-success/20 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5 text-accent-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="tel:{{ business.phone_number }}" class="flex items-center gap-3 p-3 rounded-lg bg-dark-card hover:bg-dark-card-hover transition" aria-label="Ligar para {{ business.phone_number }}">
+                    <div class="w-10 h-10 rounded-lg bg-accent-success/20 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                        <svg class="w-5 h-5 text-accent-success" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
                         </svg>
                     </div>
@@ -103,9 +103,9 @@
                 {% endif %}
 
                 {% if business.email %}
-                <a href="mailto:{{ business.email }}" class="flex items-center gap-3 p-3 rounded-lg bg-dark-card hover:bg-dark-card-hover transition">
-                    <div class="w-10 h-10 rounded-lg bg-accent-primary/20 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-5 h-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="mailto:{{ business.email }}" class="flex items-center gap-3 p-3 rounded-lg bg-dark-card hover:bg-dark-card-hover transition" aria-label="Enviar email para {{ business.email }}">
+                    <div class="w-10 h-10 rounded-lg bg-accent-primary/20 flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                        <svg class="w-5 h-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                         </svg>
                     </div>
@@ -208,14 +208,62 @@
             </div>
         </div>
 
+        <!-- Quick Actions -->
+        <div class="p-4 border-b border-dark-border">
+            <h4 class="text-sm font-semibold text-dark-text-secondary uppercase tracking-wider mb-3">Acoes Rapidas</h4>
+            <div class="flex flex-wrap gap-2">
+                {% if business.has_website and business.enrichment_status != 'completed' %}
+                <button hx-post="/enrichment/enrich/{{ business.id }}"
+                        hx-target="#enrich-result"
+                        hx-swap="innerHTML"
+                        class="px-3 py-2 bg-accent-secondary hover:bg-accent-secondary/80 text-white rounded-lg text-sm transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Enriquecer Dados
+                </button>
+                {% elif business.enrichment_status == 'completed' %}
+                <span class="px-3 py-2 bg-accent-success/20 text-accent-success rounded-lg text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Dados Enriquecidos
+                </span>
+                {% elif not business.has_website %}
+                <span class="px-3 py-2 bg-dark-card text-dark-text-muted rounded-lg text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    Sem website para enriquecer
+                </span>
+                {% endif %}
+
+                {% if notion_active %}
+                <button hx-post="/notion/sync/{{ business.id }}"
+                        hx-target="#notion-result"
+                        hx-swap="innerHTML"
+                        class="px-3 py-2 bg-dark-card hover:bg-dark-card-hover border border-dark-border text-white rounded-lg text-sm transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 100 100">
+                        <path d="M6.017 4.313l55.333-4.087c6.797-.583 8.543-.19 12.817 2.917l17.663 12.443c2.913 2.14 3.883 2.723 3.883 5.053v68.243c0 4.277-1.553 6.807-6.99 7.193L24.467 99.967c-4.08.193-6.023-.39-8.16-3.113L3.3 79.94c-2.333-3.113-3.3-5.443-3.3-8.167V11.113c0-3.497 1.553-6.413 6.017-6.8z"/>
+                    </svg>
+                    Sync Notion
+                </button>
+                {% endif %}
+            </div>
+            <div id="enrich-result" class="mt-2"></div>
+            <div id="notion-result" class="mt-2"></div>
+        </div>
+
         <!-- Quick Status Update -->
         <div class="p-4">
-            <h4 class="text-sm font-semibold text-dark-text-secondary uppercase tracking-wider mb-3">Atualizar Status</h4>
+            <h3 class="text-sm font-semibold text-dark-text-secondary uppercase tracking-wider mb-3">Atualizar Status</h3>
             <form hx-post="/leads/{{ business.id }}/update"
                   hx-target="#lead-drawer-content"
                   hx-swap="innerHTML"
-                  class="space-y-3">
-                <select name="status" class="w-full bg-dark-card border border-dark-border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
+                  class="space-y-3"
+                  aria-label="Formulario de atualizacao de status do lead">
+                <label for="lead-status-select" class="sr-only">Status do lead</label>
+                <select id="lead-status-select" name="status" class="w-full bg-dark-card border border-dark-border rounded-lg px-4 py-2.5 text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                     {% for s in statuses %}
                     <option value="{{ s }}" {% if business.lead_status == s %}selected{% endif %}>{{ s|capitalize }}</option>
                     {% endfor %}

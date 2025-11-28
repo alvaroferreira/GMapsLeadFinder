@@ -261,7 +261,9 @@ class GooglePlacesClient:
             bool: True se valida, False caso contrario
         """
         try:
-            await self.text_search("test", max_total_results=1)
+            # text_search nao tem parametro max_total_results
+            # esse parametro e do search_all_pages
+            response = await self.text_search("test")
             return True
         except GooglePlacesAuthError:
             return False

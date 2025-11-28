@@ -89,12 +89,18 @@ class WebsiteScraper:
         self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
-        """Retorna cliente HTTP reutilizavel."""
+        """Retorna cliente HTTP reutilizavel com connection pooling."""
         if self._client is None:
+            # PERFORMANCE: Connection pooling para reutilizar conexões
             self._client = httpx.AsyncClient(
                 headers={"User-Agent": self.USER_AGENT},
                 timeout=self.REQUEST_TIMEOUT,
                 follow_redirects=True,
+                limits=httpx.Limits(
+                    max_keepalive_connections=20,
+                    max_connections=50,
+                    keepalive_expiry=30.0,
+                ),
             )
         return self._client
 

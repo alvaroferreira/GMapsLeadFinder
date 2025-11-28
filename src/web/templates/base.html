@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Geoscout Pro - Lead Finder: Descubra e gerencie leads de negocios locais">
     <title>{% block title %}Geoscout Pro{% endblock %}</title>
 
     <!-- Tailwind CSS -->
@@ -38,6 +39,10 @@
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 
+    <!-- Leaflet CSS/JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         .htmx-indicator { display: none; }
         .htmx-request .htmx-indicator { display: inline-block; }
@@ -51,6 +56,15 @@
             }
             #sidebar.open {
                 transform: translateX(0);
+            }
+        }
+
+        /* Respect user preference for reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
 
@@ -69,19 +83,71 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #4b5563;
         }
+
+        /* Focus visible styles for keyboard navigation */
+        *:focus-visible {
+            outline: 2px solid #6366f1;
+            outline-offset: 2px;
+        }
+
+        /* Skip to main content link */
+        .skip-to-main {
+            position: absolute;
+            left: -9999px;
+            z-index: 999;
+            padding: 1em;
+            background-color: #6366f1;
+            color: white;
+            text-decoration: none;
+        }
+        .skip-to-main:focus {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 0;
+        }
+
+        /* Screen reader only utility class */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Leaflet dark theme popups */
+        .leaflet-popup-content-wrapper {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: 8px;
+            border: 1px solid #374151;
+        }
+        .leaflet-popup-tip {
+            background: #1e1e2e;
+        }
+        .leaflet-popup-content {
+            margin: 10px 12px;
+        }
     </style>
 
     {% block head %}{% endblock %}
 </head>
 <body class="bg-dark-bg min-h-screen text-dark-text-primary">
+    <!-- Skip to main content link for keyboard users -->
+    <a href="#main-content" class="skip-to-main">Saltar para o conteudo principal</a>
+
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-dark-surface border-r border-dark-border flex flex-col">
+        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-64 bg-dark-surface border-r border-dark-border flex flex-col" role="navigation" aria-label="Menu principal">
             <!-- Logo Section -->
             <div class="p-4 border-b border-dark-border">
-                <a href="/" class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-lg flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <a href="/" class="flex items-center gap-3" aria-label="Geoscout Pro - Ir para Dashboard">
+                    <div class="w-10 h-10 bg-gradient-to-br from-accent-primary to-accent-secondary rounded-lg flex items-center justify-center" aria-hidden="true">
+                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                             <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
                         </svg>
                     </div>
@@ -90,22 +156,36 @@
             </div>
 
             <!-- Navigation Links -->
-            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-                <!-- Dashboard -->
-                <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto" aria-label="Navegacao principal">
+                <!-- DESCOBERTA Section -->
+                <div class="px-4 py-2 text-xs font-semibold text-dark-text-muted uppercase tracking-wider" role="heading" aria-level="2">Descoberta</div>
 
                 <!-- Pesquisar -->
-                <a href="/search" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/search' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a href="/search" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/search' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition" {% if request.path == '/search' %}aria-current="page"{% endif %}>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                     <span>Pesquisar</span>
                 </a>
+
+                <!-- Automacao -->
+                <a href="/automation" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if '/automation' in request.path %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition" {% if '/automation' in request.path %}aria-current="page"{% endif %}>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>Automacao</span>
+                </a>
+
+                <!-- Novos Negocios -->
+                <a href="/new-businesses" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/new-businesses' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition" {% if request.path == '/new-businesses' %}aria-current="page"{% endif %}>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                    </svg>
+                    <span>Novos Negocios</span>
+                </a>
+
+                <!-- QUALIFICACAO Section -->
+                <div class="px-4 py-2 mt-4 text-xs font-semibold text-dark-text-muted uppercase tracking-wider" role="heading" aria-level="2">Qualificacao</div>
 
                 <!-- Leads -->
                 <a href="/leads" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if '/leads' in request.path %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
@@ -115,23 +195,34 @@
                     <span>Leads</span>
                 </a>
 
-                <!-- Enrichment -->
-                <a href="/enrichment" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/enrichment' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                <!-- Pipeline -->
+                <a href="/pipeline" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/pipeline' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
                     </svg>
-                    <span>Enrichment</span>
+                    <span>Pipeline</span>
                 </a>
 
-                <!-- Automacao -->
-                <a href="/automation" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if '/automation' in request.path %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                <!-- CONVERSAO Section -->
+                <div class="px-4 py-2 mt-4 text-xs font-semibold text-dark-text-muted uppercase tracking-wider" role="heading" aria-level="2">Conversao</div>
+
+                <!-- Exportar -->
+                <a href="/export" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/export' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
-                    <span>Automacao</span>
+                    <span>Exportar</span>
                 </a>
 
                 <div class="border-t border-dark-border my-4"></div>
+
+                <!-- Dashboard -->
+                <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
 
                 <!-- Notificacoes -->
                 <a href="/notifications" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/notifications' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition relative">
@@ -142,14 +233,6 @@
                     <span id="sidebar-notification-badge" class="hidden absolute right-4 bg-accent-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"></span>
                 </a>
 
-                <!-- Exportar -->
-                <a href="/export" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/export' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    <span>Exportar</span>
-                </a>
-
                 <!-- Estatisticas -->
                 <a href="/stats" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/stats' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,8 +240,6 @@
                     </svg>
                     <span>Estatisticas</span>
                 </a>
-
-                <div class="border-t border-dark-border my-4"></div>
 
                 <!-- Settings -->
                 <a href="/settings" class="flex items-center gap-3 px-4 py-3 rounded-lg {% if request.path == '/settings' %}bg-accent-primary/10 text-accent-primary border-l-4 border-accent-primary -ml-4 pl-7{% else %}text-dark-text-secondary hover:bg-dark-card hover:text-white{% endif %} transition">
@@ -185,16 +266,16 @@
         </aside>
 
         <!-- Mobile Sidebar Overlay -->
-        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden"></div>
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden hidden" aria-hidden="true"></div>
 
         <!-- Main Content Area -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Header Bar -->
-            <header class="h-16 bg-dark-surface border-b border-dark-border flex items-center justify-between px-6 flex-shrink-0">
+            <header class="h-16 bg-dark-surface border-b border-dark-border flex items-center justify-between px-6 flex-shrink-0" role="banner">
                 <div class="flex items-center gap-4">
                     <!-- Mobile Menu Toggle -->
-                    <button id="sidebar-toggle" class="lg:hidden p-2 hover:bg-dark-card rounded-lg transition">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="sidebar-toggle" class="lg:hidden p-2 hover:bg-dark-card rounded-lg transition" aria-label="Abrir menu de navegacao" aria-expanded="false" aria-controls="sidebar">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
                     </button>
@@ -205,25 +286,26 @@
                     <!-- Search Bar (optional) -->
                     <div class="hidden md:flex items-center">
                         <div class="relative">
-                            <input type="text" placeholder="Pesquisar leads..."
+                            <label for="global-search" class="sr-only">Pesquisar leads</label>
+                            <input type="text" id="global-search" placeholder="Pesquisar leads..." aria-label="Pesquisar leads"
                                    class="w-64 bg-dark-card border border-dark-border rounded-lg px-4 py-2 pl-10 text-sm focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
-                            <svg class="w-4 h-4 text-dark-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 text-dark-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
                         </div>
                     </div>
 
                     <!-- Notification Bell -->
-                    <a href="/notifications" class="relative p-2 hover:bg-dark-card rounded-lg transition">
-                        <svg class="w-6 h-6 text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="/notifications" class="relative p-2 hover:bg-dark-card rounded-lg transition" aria-label="Notificacoes">
+                        <svg class="w-6 h-6 text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
-                        <span id="notification-badge" class="hidden absolute -top-1 -right-1 bg-accent-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center"></span>
+                        <span id="notification-badge" class="hidden absolute -top-1 -right-1 bg-accent-danger text-white text-xs rounded-full h-5 w-5 flex items-center justify-center" role="status" aria-live="polite"></span>
                     </a>
 
                     <!-- Quick Action Button -->
-                    <a href="/search" class="hidden sm:flex items-center gap-2 bg-accent-primary hover:bg-accent-primary/80 text-white px-4 py-2 rounded-lg transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="/search" class="hidden sm:flex items-center gap-2 bg-accent-primary hover:bg-accent-primary/80 text-white px-4 py-2 rounded-lg transition" aria-label="Criar nova pesquisa">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                         </svg>
                         <span>Nova Pesquisa</span>
@@ -232,20 +314,20 @@
             </header>
 
             <!-- Scrollable Content Area -->
-            <main class="flex-1 overflow-y-auto p-6">
+            <main id="main-content" class="flex-1 overflow-y-auto p-6" role="main">
                 {% block content %}{% endblock %}
             </main>
         </div>
 
         <!-- Lead Detail Drawer -->
-        <div id="lead-drawer" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-dark-surface border-l border-dark-border shadow-dark-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50 hidden">
+        <div id="lead-drawer" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-dark-surface border-l border-dark-border shadow-dark-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
             <div id="lead-drawer-content" class="h-full overflow-y-auto">
                 <!-- Content loaded via HTMX -->
             </div>
         </div>
 
         <!-- Drawer Overlay -->
-        <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+        <div id="drawer-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden" aria-hidden="true"></div>
     </div>
 
     <!-- Notification Badge Update Script -->
@@ -287,8 +369,12 @@
         const sidebarOverlay = document.getElementById('sidebar-overlay');
 
         function toggleSidebar() {
-            sidebar.classList.toggle('open');
+            const isOpen = sidebar.classList.toggle('open');
             sidebarOverlay.classList.toggle('hidden');
+
+            // Update ARIA attributes for accessibility
+            sidebarToggle.setAttribute('aria-expanded', isOpen);
+            sidebarOverlay.setAttribute('aria-hidden', !isOpen);
         }
 
         sidebarToggle.addEventListener('click', toggleSidebar);
@@ -303,10 +389,16 @@
 
             drawer.classList.remove('hidden');
             overlay.classList.remove('hidden');
+            overlay.setAttribute('aria-hidden', 'false');
 
             // Small delay to trigger CSS transition
             setTimeout(() => {
                 drawer.classList.remove('translate-x-full');
+                // Focus on the drawer for keyboard navigation
+                const firstFocusable = drawer.querySelector('button, a, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (firstFocusable) {
+                    firstFocusable.focus();
+                }
             }, 10);
         }
 
@@ -319,6 +411,7 @@
             setTimeout(() => {
                 drawer.classList.add('hidden');
                 overlay.classList.add('hidden');
+                overlay.setAttribute('aria-hidden', 'true');
             }, 300);
         }
 

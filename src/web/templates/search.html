@@ -5,183 +5,73 @@
 {% block page_title %}Pesquisar{% endblock %}
 
 {% block head %}
-{% if has_api_key %}
+<style>
+    #map { min-height: 400px; }
+</style>
+{% endblock %}
+
+{% block scripts %}
 <script>
-let map;
+// Inicializar mapa Leaflet com tema escuro CartoDB
+const map = L.map('map').setView([38.7223, -9.1393], 12);
+
+// Tile layer CartoDB Dark (100% gratuito)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+}).addTo(map);
+
 let markers = [];
 
-function initMap() {
-    const darkMapStyle = [
-        { elementType: "geometry", stylers: [{ color: "#1a1a2e" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#1a1a2e" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#8b5cf6" }] },
-        { elementType: "labels.icon", stylers: [{ visibility: "off" }] },
-        {
-            featureType: "administrative",
-            elementType: "geometry",
-            stylers: [{ color: "#374151" }]
-        },
-        {
-            featureType: "administrative.country",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#9ca3af" }]
-        },
-        {
-            featureType: "administrative.locality",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d1d5db" }]
-        },
-        {
-            featureType: "poi",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#6b7280" }]
-        },
-        {
-            featureType: "poi.park",
-            elementType: "geometry",
-            stylers: [{ color: "#1f2937" }]
-        },
-        {
-            featureType: "poi.park",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#6b7280" }]
-        },
-        {
-            featureType: "road",
-            elementType: "geometry",
-            stylers: [{ color: "#374151" }]
-        },
-        {
-            featureType: "road",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#1f2937" }]
-        },
-        {
-            featureType: "road",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#9ca3af" }]
-        },
-        {
-            featureType: "road.highway",
-            elementType: "geometry",
-            stylers: [{ color: "#4b5563" }]
-        },
-        {
-            featureType: "road.highway",
-            elementType: "geometry.stroke",
-            stylers: [{ color: "#1f2937" }]
-        },
-        {
-            featureType: "road.highway",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#d1d5db" }]
-        },
-        {
-            featureType: "transit",
-            elementType: "geometry",
-            stylers: [{ color: "#1f2937" }]
-        },
-        {
-            featureType: "transit.station",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#6b7280" }]
-        },
-        {
-            featureType: "water",
-            elementType: "geometry",
-            stylers: [{ color: "#0f172a" }]
-        },
-        {
-            featureType: "water",
-            elementType: "labels.text.fill",
-            stylers: [{ color: "#4b5563" }]
-        },
-        {
-            featureType: "water",
-            elementType: "labels.text.stroke",
-            stylers: [{ color: "#0f172a" }]
-        }
-    ];
-
-    map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 38.7223, lng: -9.1393 },
-        zoom: 12,
-        styles: darkMapStyle,
-        disableDefaultUI: true,
-        zoomControl: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-    });
-}
-
-// Function to update markers from search results
+// Funcao para atualizar marcadores no mapa
 function updateMapMarkers(leads) {
-    // Clear existing markers
-    markers.forEach(m => m.setMap(null));
+    // Limpar marcadores existentes
+    markers.forEach(m => map.removeLayer(m));
     markers = [];
 
     if (!leads || leads.length === 0) return;
 
-    const bounds = new google.maps.LatLngBounds();
+    const bounds = L.latLngBounds();
 
-    leads.forEach((lead, index) => {
+    leads.forEach(lead => {
         if (lead.latitude && lead.longitude) {
-            const position = { lat: lead.latitude, lng: lead.longitude };
+            const marker = L.circleMarker([lead.latitude, lead.longitude], {
+                radius: 8,
+                fillColor: '#6366f1',
+                color: '#8b5cf6',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
 
-            const marker = new google.maps.Marker({
-                position: position,
-                map: map,
-                title: lead.name,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    scale: 8,
-                    fillColor: "#6366f1",
-                    fillOpacity: 0.9,
-                    strokeColor: "#8b5cf6",
-                    strokeWeight: 2,
-                },
-                animation: google.maps.Animation.DROP,
-            });
+            // Popup com informacoes
+            const popupContent = `
+                <div>
+                    <h3 style="font-weight: bold; margin-bottom: 4px; color: #f9fafb;">${lead.name}</h3>
+                    <p style="font-size: 12px; color: #9ca3af; margin: 0;">${lead.address || 'Sem endereco'}</p>
+                    ${lead.rating ? `<p style="font-size: 12px; margin-top: 4px; color: #f59e0b;">⭐ ${lead.rating} (${lead.user_ratings_total || 0} avaliacoes)</p>` : ''}
+                </div>
+            `;
+            marker.bindPopup(popupContent);
 
-            // Info window
-            const infoWindow = new google.maps.InfoWindow({
-                content: `
-                    <div style="color: #1a1a2e; padding: 8px;">
-                        <h3 style="font-weight: bold; margin-bottom: 4px;">${lead.name}</h3>
-                        <p style="font-size: 12px; color: #6b7280;">${lead.address || 'Sem endereco'}</p>
-                        ${lead.rating ? `<p style="font-size: 12px; margin-top: 4px;">Rating: ${lead.rating} (${lead.user_ratings_total || 0} avaliacoes)</p>` : ''}
-                    </div>
-                `
-            });
-
-            marker.addListener('click', () => {
-                // Close all other info windows
-                markers.forEach(m => {
-                    if (m.infoWindow) m.infoWindow.close();
-                });
-                infoWindow.open(map, marker);
-            });
-
-            marker.infoWindow = infoWindow;
             markers.push(marker);
-            bounds.extend(position);
+            bounds.extend([lead.latitude, lead.longitude]);
         }
     });
 
-    // Fit map to show all markers
+    // Ajustar zoom para mostrar todos os marcadores
     if (markers.length > 0) {
-        map.fitBounds(bounds);
+        map.fitBounds(bounds, { padding: [50, 50] });
         if (markers.length === 1) {
             map.setZoom(15);
         }
     }
 }
 
-// Listen for search results
-document.addEventListener('htmx:afterSwap', function(event) {
+// Listener HTMX para atualizar mapa apos pesquisa
+document.body.addEventListener('htmx:afterSwap', function(event) {
     if (event.detail.target.id === 'search-results') {
-        // Extract lead data from results (if available in data attributes)
         const leadElements = event.detail.target.querySelectorAll('[data-lead-lat]');
         const leads = Array.from(leadElements).map(el => ({
             name: el.dataset.leadName || '',
@@ -198,8 +88,6 @@ document.addEventListener('htmx:afterSwap', function(event) {
     }
 });
 </script>
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
-{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -226,36 +114,42 @@ document.addEventListener('htmx:afterSwap', function(event) {
             <form hx-post="/search"
                   hx-target="#search-results"
                   hx-indicator="#search-indicator"
-                  class="space-y-3">
+                  class="space-y-3"
+                  role="search"
+                  aria-label="Formulario de pesquisa de negocios">
 
                 <!-- Query -->
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1.5">Pesquisa *</label>
-                    <input type="text" name="query" required
+                    <label for="search-query" class="block text-dark-text-secondary text-sm mb-1.5">Pesquisa *</label>
+                    <input type="text" id="search-query" name="query" required
                            placeholder="Ex: restaurante Lisboa..."
+                           aria-required="true"
                            class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
                 </div>
 
                 <!-- Location -->
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1.5">Localizacao (lat,lng)</label>
-                    <input type="text" name="location"
+                    <label for="search-location" class="block text-dark-text-secondary text-sm mb-1.5">Localizacao (lat,lng)</label>
+                    <input type="text" id="search-location" name="location"
                            placeholder="Ex: 38.7223,-9.1393"
+                           aria-describedby="location-help"
                            class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
-                    <p class="text-dark-text-muted text-xs mt-1">Opcional. Coordenadas para bias.</p>
+                    <p id="location-help" class="text-dark-text-muted text-xs mt-1">Opcional. Coordenadas para bias.</p>
                 </div>
 
                 <!-- Radius and Type in same row -->
                 <div class="grid grid-cols-2 gap-2">
                     <div>
-                        <label class="block text-dark-text-secondary text-sm mb-1.5">Raio (m)</label>
-                        <input type="number" name="radius" value="5000" min="100" max="50000"
+                        <label for="search-radius" class="block text-dark-text-secondary text-sm mb-1.5">Raio (m)</label>
+                        <input type="number" id="search-radius" name="radius" value="5000" min="100" max="50000"
+                               aria-label="Raio de pesquisa em metros"
                                class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
                     </div>
 
                     <div>
-                        <label class="block text-dark-text-secondary text-sm mb-1.5">Max Res.</label>
-                        <select name="max_results"
+                        <label for="search-max-results" class="block text-dark-text-secondary text-sm mb-1.5">Max Res.</label>
+                        <select id="search-max-results" name="max_results"
+                                aria-label="Numero maximo de resultados"
                                 class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
                             <option value="20">20</option>
                             <option value="40">40</option>
@@ -307,6 +201,30 @@ document.addEventListener('htmx:afterSwap', function(event) {
                     </div>
                 </div>
 
+                <!-- Filtros de Data -->
+                <div class="border-t border-dark-border pt-3 mt-3">
+                    <label class="block text-dark-text-secondary text-sm mb-2 font-medium">Filtrar por Data de Descoberta</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-dark-text-muted text-xs mb-1">De</label>
+                            <input type="date" name="date_from"
+                                   class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-dark-text-muted text-xs mb-1">Ate</label>
+                            <input type="date" name="date_to"
+                                   class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="only_new" value="yes"
+                                   class="w-4 h-4 rounded bg-dark-surface border-dark-border text-accent-primary focus:ring-accent-primary focus:ring-offset-0">
+                            <span class="text-xs text-dark-text-secondary">Mostrar apenas negocios novos (nao existem na DB)</span>
+                        </label>
+                    </div>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="pt-2">
                     <button type="submit" {% if not has_api_key %}disabled{% endif %}
@@ -343,22 +261,9 @@ document.addEventListener('htmx:afterSwap', function(event) {
         </div>
     </div>
 
-    <!-- Right Panel: Google Map -->
+    <!-- Right Panel: Leaflet Map (OpenStreetMap - 100% gratuito) -->
     <div class="flex-1 bg-dark-card rounded-xl border border-dark-border overflow-hidden relative shadow-dark-lg">
-        <div id="map" class="w-full h-full"></div>
-
-        <!-- Map placeholder when no API key -->
-        {% if not has_api_key %}
-        <div class="absolute inset-0 flex items-center justify-center bg-dark-surface">
-            <div class="text-center">
-                <svg class="w-16 h-16 text-dark-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                </svg>
-                <p class="text-dark-text-muted">Configure a API key para ver o mapa</p>
-                <p class="text-dark-text-muted text-sm mt-2">GOOGLE_PLACES_API_KEY no ficheiro .env</p>
-            </div>
-        </div>
-        {% endif %}
+        <div id="map" class="w-full h-full" role="img" aria-label="Mapa com localizacao dos resultados da pesquisa"></div>
     </div>
 </div>
 {% endblock %}

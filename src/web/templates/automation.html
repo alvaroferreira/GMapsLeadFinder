@@ -12,25 +12,25 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
-            <div class="text-dark-text-secondary text-sm">Total Pesquisas</div>
-            <div class="text-2xl font-bold text-blue-400">{{ stats.total_searches }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6 hover:border-accent-primary/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Total Pesquisas</div>
+            <div class="text-2xl font-bold text-accent-primary">{{ stats.total_searches }}</div>
         </div>
-        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
-            <div class="text-dark-text-secondary text-sm">Ativas</div>
-            <div class="text-2xl font-bold text-green-400">{{ stats.active_searches }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6 hover:border-accent-success/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Ativas</div>
+            <div class="text-2xl font-bold text-accent-success">{{ stats.active_searches }}</div>
         </div>
-        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
-            <div class="text-dark-text-secondary text-sm">Execucoes</div>
-            <div class="text-2xl font-bold text-purple-400">{{ stats.total_executions }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6 hover:border-accent-secondary/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Execucoes</div>
+            <div class="text-2xl font-bold text-accent-secondary">{{ stats.total_executions }}</div>
         </div>
-        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
-            <div class="text-dark-text-secondary text-sm">Notificacoes</div>
-            <div class="text-2xl font-bold text-yellow-400">{{ stats.total_notifications }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6 hover:border-accent-warning/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Notificacoes</div>
+            <div class="text-2xl font-bold text-accent-warning">{{ stats.total_notifications }}</div>
         </div>
-        <div class="bg-dark-card rounded-xl border border-dark-border p-6">
-            <div class="text-dark-text-secondary text-sm">Nao Lidas</div>
-            <div class="text-2xl font-bold text-red-400">{{ stats.unread_notifications }}</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border p-6 hover:border-accent-danger/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Nao Lidas</div>
+            <div class="text-2xl font-bold text-accent-danger">{{ stats.unread_notifications }}</div>
         </div>
     </div>
 
@@ -40,23 +40,23 @@
         <form method="post" action="/automation/create" class="space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1">Nome *</label>
-                    <input type="text" name="name" required placeholder="Ex: Restaurantes Lisboa"
-                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                    <label for="name" class="block text-dark-text-secondary text-sm mb-1">Nome *</label>
+                    <input type="text" id="name" name="name" required placeholder="Ex: Restaurantes Lisboa"
+                           class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                 </div>
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1">Query de Pesquisa *</label>
-                    <input type="text" name="query" required placeholder="Ex: restaurantes em Lisboa"
-                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                    <label for="query" class="block text-dark-text-secondary text-sm mb-1">Query de Pesquisa *</label>
+                    <input type="text" id="query" name="query" required placeholder="Ex: restaurantes em Lisboa"
+                           class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                 </div>
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1">Localizacao (lat,lng)</label>
-                    <input type="text" name="location" placeholder="Ex: 38.7223,-9.1393"
-                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                    <label for="location" class="block text-dark-text-secondary text-sm mb-1">Localizacao (lat,lng)</label>
+                    <input type="text" id="location" name="location" placeholder="Ex: 38.7223,-9.1393"
+                           class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                 </div>
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1">Raio (metros)</label>
-                    <select name="radius" class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                    <label for="radius" class="block text-dark-text-secondary text-sm mb-1">Raio (metros)</label>
+                    <select id="radius" name="radius" class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                         <option value="1000">1 km</option>
                         <option value="2000">2 km</option>
                         <option value="5000" selected>5 km</option>
@@ -65,8 +65,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1">Intervalo</label>
-                    <select name="interval_hours" class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                    <label for="interval_hours" class="block text-dark-text-secondary text-sm mb-1">Intervalo</label>
+                    <select id="interval_hours" name="interval_hours" class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                         <option value="6">A cada 6 horas</option>
                         <option value="12">A cada 12 horas</option>
                         <option value="24" selected>Diariamente</option>
@@ -75,17 +75,18 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-dark-text-secondary text-sm mb-1">Score Minimo Notificacao</label>
-                    <input type="number" name="notify_threshold_score" value="50" min="0" max="100"
-                           class="w-full px-3 py-2 bg-dark-card border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                    <label for="notify_threshold_score" class="block text-dark-text-secondary text-sm mb-1">Score Minimo Notificacao</label>
+                    <input type="number" id="notify_threshold_score" name="notify_threshold_score" value="50" min="0" max="100"
+                           class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                 </div>
             </div>
-            <div class="flex items-center gap-4">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" name="notify_on_new" value="true" checked class="rounded">
+            <div class="flex items-center gap-4 flex-wrap">
+                <label for="notify_on_new" class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="notify_on_new" name="notify_on_new" value="true" checked
+                           class="w-4 h-4 rounded bg-dark-surface border-dark-border text-accent-primary focus:ring-accent-primary focus:ring-offset-0 cursor-pointer">
                     <span class="text-dark-text-secondary">Notificar novos leads</span>
                 </label>
-                <button type="submit" class="bg-accent-primary hover:bg-accent-primary/80 text-white px-6 py-2 rounded-lg">
+                <button type="submit" class="bg-accent-primary hover:bg-accent-primary/80 text-white px-6 py-2.5 rounded-lg transition font-medium">
                     Criar Pesquisa
                 </button>
             </div>
@@ -97,7 +98,8 @@
         <div class="px-4 py-3 bg-dark-surface border-b border-dark-border">
             <h2 class="text-lg font-semibold text-dark-text-primary">Pesquisas Agendadas</h2>
         </div>
-        <table class="w-full">
+        <div class="overflow-x-auto">
+        <table class="w-full min-w-[800px]">
             <thead class="bg-dark-surface">
                 <tr>
                     <th class="px-4 py-3 text-left text-dark-text-secondary">Nome</th>
@@ -164,6 +166,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
 
     <!-- Recent Logs -->
@@ -172,7 +175,8 @@
         <div class="px-4 py-3 bg-dark-surface border-b border-dark-border">
             <h2 class="text-lg font-semibold text-dark-text-primary">Execucoes Recentes</h2>
         </div>
-        <table class="w-full">
+        <div class="overflow-x-auto">
+        <table class="w-full min-w-[600px]">
             <thead class="bg-dark-surface">
                 <tr>
                     <th class="px-4 py-3 text-left text-dark-text-secondary">Data</th>
@@ -204,6 +208,7 @@
                 {% endfor %}
             </tbody>
         </table>
+        </div>
     </div>
     {% endif %}
 </div>

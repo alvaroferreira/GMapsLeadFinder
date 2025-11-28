@@ -68,10 +68,17 @@
 
             <!-- Content -->
             <div class="flex-1 min-w-0">
-                <!-- Business Name -->
-                <h3 class="text-dark-text-primary font-semibold text-base mb-1 truncate">
-                    {{ lead.name }}
-                </h3>
+                <!-- Business Name with New/Existing Badge -->
+                <div class="flex items-center gap-2 mb-1">
+                    <h3 class="text-dark-text-primary font-semibold text-base truncate">
+                        {{ lead.name }}
+                    </h3>
+                    {% if lead.is_new %}
+                    <span class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full bg-accent-success/20 text-accent-success font-medium">NOVO</span>
+                    {% else %}
+                    <span class="flex-shrink-0 text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium">Existente</span>
+                    {% endif %}
+                </div>
 
                 <!-- Address -->
                 {% if lead.formatted_address %}

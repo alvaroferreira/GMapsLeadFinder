@@ -23,6 +23,30 @@ from src.services.scheduler import AutomationService, AutomationScheduler, Notif
 from src.services.scorer import LeadScorer
 from src.services.search import SearchService
 from src.services.tracker import TrackerService
+from src.web.optimizations import (
+    get_notion_config_cached,
+    get_stats_cached,
+    invalidate_notion_cache,
+    invalidate_stats_cache,
+    businesses_to_dicts,
+)
+
+
+# ============ HELPERS ============
+
+class DictToObject:
+    """Helper class para converter dicts em objetos para templates."""
+
+    def __init__(self, data: dict):
+        """
+        Converte dict para objeto com atributos.
+
+        Args:
+            data: Dictionary a converter
+        """
+        for key, value in data.items():
+            setattr(self, key, value)
+
 
 # Setup
 app = FastAPI(
@@ -53,8 +77,10 @@ async def health_check():
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Pagina inicial com dashboard."""
+    # PERFORMANCE: Cache stats por 2 minutos
+    stats = get_stats_cached()
+
     with db.get_session() as session:
-        stats = BusinessQueries.get_stats(session)
         recent_searches = SearchHistoryQueries.get_recent(session, limit=5)
 
         return templates.TemplateResponse(
@@ -96,6 +122,9 @@ async def do_search(
     max_reviews: str = Form(""),
     has_website: str = Form(""),
     max_results: str = Form("60"),
+    date_from: str = Form(""),
+    date_to: str = Form(""),
+    only_new: str = Form(""),
 ):
     """Executa pesquisa."""
     if not settings.has_api_key:
@@ -125,6 +154,25 @@ async def do_search(
     elif has_website == "no":
         website_filter = False
 
+    # Parse date filters
+    first_seen_from = None
+    first_seen_to = None
+    if date_from:
+        first_seen_from = datetime.strptime(date_from, "%Y-%m-%d")
+    if date_to:
+        first_seen_to = datetime.strptime(date_to, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+
+    # Parse only_new flag
+    show_only_new = only_new == "yes"
+
+    # PERFORMANCE: Get existing business IDs (apenas IDs, não objetos completos)
+    existing_ids = set()
+    if not show_only_new:
+        from src.database.models import Business
+        with db.get_session() as session:
+            # Query otimizada: buscar apenas IDs
+            existing_ids = {row[0] for row in session.query(Business.id).all()}
+
     service = SearchService()
 
     try:
@@ -138,17 +186,26 @@ async def do_search(
             has_website=website_filter,
         )
 
-        # Fetch the actual leads from the database
+        # Fetch the actual leads from the database with date filters
         with db.get_session() as session:
             businesses_db = BusinessQueries.get_all(
                 session,
                 limit=max_results_int,
-                order_by="lead_score",  # Order by score for best leads first
+                order_by="lead_score",
+                first_seen_from=first_seen_from,
+                first_seen_to=first_seen_to,
             )
 
             # Convert to dicts for template
             leads = []
             for b in businesses_db:
+                # Check if this is a new business (not in DB before search)
+                is_new = b.id not in existing_ids
+
+                # Skip if only_new is set and this is not new
+                if show_only_new and not is_new:
+                    continue
+
                 leads.append({
                     "id": b.id,
                     "name": b.name,
@@ -159,6 +216,8 @@ async def do_search(
                     "review_count": b.review_count,
                     "lead_score": b.lead_score,
                     "has_website": b.has_website,
+                    "is_new": is_new,
+                    "first_seen_at": b.first_seen_at,
                 })
 
         return templates.TemplateResponse(
@@ -184,6 +243,8 @@ async def leads_page(
     min_score: int = Query(None),
     has_website: str = Query(None),
     this_week: str = Query(None),
+    date_from: str = Query(None),
+    date_to: str = Query(None),
     page: int = Query(1),
 ):
     """Pagina de listagem de leads."""
@@ -201,6 +262,14 @@ async def leads_page(
     if this_week == "yes":
         first_seen_since = datetime.now() - timedelta(days=7)
 
+    # Parse dos filtros de data
+    first_seen_from = None
+    first_seen_to = None
+    if date_from:
+        first_seen_from = datetime.strptime(date_from, "%Y-%m-%d")
+    if date_to:
+        first_seen_to = datetime.strptime(date_to, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+
     with db.get_session() as session:
         businesses_db = BusinessQueries.get_all(
             session,
@@ -208,6 +277,8 @@ async def leads_page(
             min_score=min_score,
             has_website=website_filter,
             first_seen_since=first_seen_since,
+            first_seen_from=first_seen_from,
+            first_seen_to=first_seen_to,
             limit=limit,
             offset=offset,
         )
@@ -217,27 +288,13 @@ async def leads_page(
             first_seen_since=first_seen_since,
         )
 
-        # Converter para dicts dentro da sessao
-        businesses = []
-        for b in businesses_db:
-            businesses.append({
-                "id": b.id,
-                "name": b.name,
-                "formatted_address": b.formatted_address,
-                "rating": b.rating,
-                "review_count": b.review_count,
-                "has_website": b.has_website,
-                "lead_score": b.lead_score,
-                "lead_status": b.lead_status,
-                "google_maps_url": b.google_maps_url,
-                "notion_synced_at": b.notion_synced_at,
-            })
+        # PERFORMANCE: Converter para dicts DENTRO da sessão para evitar DetachedInstanceError
+        businesses = businesses_to_dicts(businesses_db, include_extra=True)
 
     total_pages = (total + limit - 1) // limit
 
-    # Verificar se Notion esta configurado
-    notion = NotionService()
-    notion_config = notion.get_config()
+    # PERFORMANCE: Cache config do Notion por 5 minutos
+    notion_config = get_notion_config_cached()
     notion_active = notion_config.get("is_active", False) if notion_config else False
 
     return templates.TemplateResponse(
@@ -250,6 +307,8 @@ async def leads_page(
             "current_status": status,
             "current_min_score": min_score,
             "current_has_website": has_website,
+            "current_date_from": date_from,
+            "current_date_to": date_to,
             "page": page,
             "total_pages": total_pages,
             "total": total,
@@ -302,12 +361,22 @@ async def get_lead_drawer(place_id: str, request: Request):
 
         statuses = LEAD_STATUSES
 
+        # Check Notion integration status
+        notion_active = False
+        try:
+            from src.database.models import IntegrationConfig
+            notion_config = session.query(IntegrationConfig).filter_by(service="notion").first()
+            notion_active = notion_config and notion_config.is_active
+        except Exception:
+            pass
+
         return templates.TemplateResponse(
             "partials/lead_drawer.html",
             {
                 "request": request,
                 "business": business,
-                "statuses": statuses
+                "statuses": statuses,
+                "notion_active": notion_active,
             }
         )
 
@@ -337,6 +406,89 @@ async def update_lead(
             business.notes = f"{existing}\n[{timestamp}] {notes}".strip()
 
     return RedirectResponse(url=f"/leads/{place_id}", status_code=303)
+
+
+@app.post("/leads/{place_id}/status")
+async def update_lead_status_api(place_id: str, status: str = Form(...)):
+    """Atualiza status de um lead (para drag & drop do pipeline)."""
+    with db.get_session() as session:
+        business = BusinessQueries.get_by_id(session, place_id)
+        if business:
+            business.lead_status = status
+            session.commit()
+    return {"success": True}
+
+
+@app.get("/new-businesses", response_class=HTMLResponse)
+async def new_businesses_page(
+    request: Request,
+    days: int = Query(7),
+):
+    """Pagina de novos negocios descobertos."""
+    since = datetime.now() - timedelta(days=days)
+
+    with db.get_session() as session:
+        businesses_db = BusinessQueries.get_all(
+            session,
+            first_seen_since=since,
+            order_by="first_seen_at",
+            limit=100,
+        )
+
+        # PERFORMANCE: Converter para dicts DENTRO da sessão para evitar DetachedInstanceError
+        businesses = businesses_to_dicts(businesses_db, include_extra=False)
+
+    # Stats (fora da sessão, usando os dicts já convertidos)
+    stats = {
+        "total_new": len(businesses),
+        "high_score": sum(1 for b in businesses if b["lead_score"] >= 70),
+        "with_website": sum(1 for b in businesses if b["has_website"]),
+    }
+
+    return templates.TemplateResponse(
+        "new_businesses.html",
+        {
+            "request": request,
+            "businesses": businesses,
+            "stats": stats,
+            "days": days,
+        },
+    )
+
+
+@app.get("/pipeline", response_class=HTMLResponse)
+async def pipeline_page(request: Request):
+    """Pagina de pipeline Kanban."""
+    statuses = [
+        {"key": "new", "label": "Novo", "color": "accent-primary"},
+        {"key": "contacted", "label": "Contactado", "color": "accent-warning"},
+        {"key": "qualified", "label": "Qualificado", "color": "blue-500"},
+        {"key": "converted", "label": "Convertido", "color": "accent-success"},
+        {"key": "rejected", "label": "Rejeitado", "color": "accent-danger"},
+    ]
+
+    with db.get_session() as session:
+        all_leads_db = BusinessQueries.get_all(session, limit=500)
+
+        # PERFORMANCE: Converter todos de uma vez DENTRO da sessão
+        all_leads_dicts = businesses_to_dicts(all_leads_db, include_extra=False)
+
+        # Group by status (ainda dentro da sessão para evitar problemas)
+        leads_by_status = {s["key"]: [] for s in statuses}
+        for lead in all_leads_dicts:
+            status = lead.get("lead_status") or "new"
+            if status in leads_by_status:
+                leads_by_status[status].append(lead)
+
+    return templates.TemplateResponse(
+        "pipeline.html",
+        {
+            "request": request,
+            "statuses": statuses,
+            "leads_by_status": leads_by_status,
+            "total_leads": sum(len(v) for v in leads_by_status.values()),
+        },
+    )
 
 
 @app.get("/export", response_class=HTMLResponse)
@@ -520,13 +672,8 @@ async def automation_page(request: Request):
     logs = automation.get_automation_logs(limit=10)
 
     # Converter dicts para objetos para compatibilidade com templates
-    class DictObj:
-        def __init__(self, data):
-            for key, value in data.items():
-                setattr(self, key, value)
-
-    searches_obj = [DictObj(s) for s in searches]
-    logs_obj = [DictObj(l) for l in logs]
+    searches_obj = [DictToObject(s) for s in searches]
+    logs_obj = [DictToObject(l) for l in logs]
 
     return templates.TemplateResponse(
         "automation.html",
@@ -619,19 +766,14 @@ async def automation_logs_page(request: Request, tracked_id: int):
         )
 
     # Converter dict para objeto-like para compatibilidade com template
-    class DictObj:
-        def __init__(self, data):
-            for key, value in data.items():
-                setattr(self, key, value)
-
-    logs_obj = [DictObj(l) for l in logs]
+    logs_obj = [DictToObject(l) for l in logs]
 
     return templates.TemplateResponse(
         "automation_logs.html",
         {
             "request": request,
             "logs": logs_obj,
-            "search": DictObj(search),
+            "search": DictToObject(search),
         },
     )
 
@@ -650,12 +792,7 @@ async def notifications_page(
     total_count = len(notification_service.get_notifications(limit=100))
 
     # Converter dicts para objetos para compatibilidade com template
-    class NotificationObj:
-        def __init__(self, data):
-            for key, value in data.items():
-                setattr(self, key, value)
-
-    notifications_obj = [NotificationObj(n) for n in notifications]
+    notifications_obj = [DictToObject(n) for n in notifications]
 
     return templates.TemplateResponse(
         "notifications.html",
@@ -775,19 +912,17 @@ async def settings_page(request: Request):
     default_ai_provider = env_vars.get("DEFAULT_AI_PROVIDER", "")
 
     # Converter config para objeto para template
-    class ConfigObj:
-        def __init__(self, data):
-            if data:
-                for key, value in data.items():
-                    setattr(self, key, value)
-            else:
-                self.is_active = False
+    # Se notion_config for None, criar objeto com is_active = False
+    if notion_config:
+        notion_config_obj = DictToObject(notion_config)
+    else:
+        notion_config_obj = DictToObject({"is_active": False})
 
     return templates.TemplateResponse(
         "settings.html",
         {
             "request": request,
-            "notion_config": ConfigObj(notion_config) if notion_config else None,
+            "notion_config": notion_config_obj,
             "sync_stats": sync_stats,
             # Google Maps
             "google_maps_configured": bool(google_maps_key) and google_maps_key != "your_api_key_here",
@@ -902,6 +1037,8 @@ async def connect_notion(
             database_id=database_id,
             workspace_name=workspace_name,
         )
+        # PERFORMANCE: Invalidar cache do Notion
+        invalidate_notion_cache()
         return RedirectResponse(url="/settings", status_code=303)
     except Exception as e:
         return {"success": False, "error": str(e)}

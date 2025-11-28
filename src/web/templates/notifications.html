@@ -10,7 +10,7 @@
         <h1 class="text-3xl font-bold text-dark-text-primary">Notificacoes</h1>
         <div class="flex gap-2">
             <form method="post" action="/notifications/read-all" class="inline">
-                <button type="submit" class="bg-accent-primary text-white px-4 py-2 rounded hover:bg-accent-primary/80 transition-colors">
+                <button type="submit" class="bg-accent-primary text-white px-4 py-2.5 rounded-lg hover:bg-accent-primary/80 transition font-medium">
                     Marcar Todas como Lidas
                 </button>
             </form>
@@ -19,39 +19,39 @@
 
     <!-- Stats -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div class="bg-dark-card rounded-lg shadow p-4">
-            <div class="text-dark-text-muted text-sm">Total</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border shadow-dark p-6 hover:border-accent-primary/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Total</div>
             <div class="text-2xl font-bold text-accent-primary">{{ stats.total }}</div>
         </div>
-        <div class="bg-dark-card rounded-lg shadow p-4">
-            <div class="text-dark-text-muted text-sm">Nao Lidas</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border shadow-dark p-6 hover:border-accent-danger/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Nao Lidas</div>
             <div class="text-2xl font-bold text-accent-danger">{{ stats.unread }}</div>
         </div>
-        <div class="bg-dark-card rounded-lg shadow p-4">
-            <div class="text-dark-text-muted text-sm">Lidas</div>
+        <div class="bg-dark-card rounded-xl border border-dark-border shadow-dark p-6 hover:border-accent-success/50 transition">
+            <div class="text-dark-text-secondary text-sm mb-2">Lidas</div>
             <div class="text-2xl font-bold text-accent-success">{{ stats.read }}</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-dark-card rounded-lg shadow p-4">
+    <div class="bg-dark-card rounded-xl border border-dark-border p-4">
         <form method="get" action="/notifications" class="flex gap-4 items-center">
-            <label class="flex items-center gap-2">
-                <input type="checkbox" name="unread_only" value="true"
+            <label for="unread_only" class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" id="unread_only" name="unread_only" value="true"
                        {% if unread_only %}checked{% endif %}
-                       class="rounded bg-dark-surface border-dark-border text-accent-primary focus:ring-accent-primary" onchange="this.form.submit()">
+                       class="w-4 h-4 rounded bg-dark-surface border-dark-border text-accent-primary focus:ring-accent-primary focus:ring-offset-0 cursor-pointer" onchange="this.form.submit()">
                 <span class="text-dark-text-secondary">Apenas nao lidas</span>
             </label>
         </form>
     </div>
 
     <!-- Notifications List -->
-    <div class="bg-dark-card rounded-lg shadow overflow-hidden">
+    <div class="bg-dark-card rounded-xl border border-dark-border shadow-dark overflow-hidden">
         <div class="divide-y divide-dark-border">
             {% for notification in notifications %}
             <div class="p-4 hover:bg-dark-card-hover transition-colors {% if not notification.is_read %}bg-dark-card border-l-4 border-accent-primary{% else %}bg-dark-surface border-l-4 border-dark-border{% endif %}"
                  id="notification-{{ notification.id }}">
-                <div class="flex justify-between items-start">
+                <div class="flex flex-col sm:flex-row justify-between items-start gap-3">
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             {% if notification.type == 'new_lead' %}
@@ -101,10 +101,10 @@
                         </div>
                     </div>
 
-                    <div class="flex gap-2 ml-4">
+                    <div class="flex gap-2 sm:ml-4 flex-shrink-0 w-full sm:w-auto">
                         {% if not notification.is_read %}
                         <form method="post" action="/notifications/{{ notification.id }}/read" class="inline">
-                            <button type="submit" class="text-dark-text-muted hover:text-white text-sm transition-colors">
+                            <button type="submit" class="px-3 py-1.5 text-dark-text-muted hover:text-white hover:bg-dark-card rounded-lg text-sm transition">
                                 Marcar Lida
                             </button>
                         </form>
@@ -112,7 +112,7 @@
 
                         <form method="post" action="/notifications/{{ notification.id }}/delete" class="inline"
                               onsubmit="return confirm('Apagar esta notificacao?')">
-                            <button type="submit" class="text-accent-danger hover:text-accent-danger/80 text-sm transition-colors">
+                            <button type="submit" class="px-3 py-1.5 text-accent-danger hover:bg-accent-danger/10 rounded-lg text-sm transition">
                                 Apagar
                             </button>
                         </form>

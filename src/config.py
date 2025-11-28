@@ -80,6 +80,24 @@ class Settings(BaseSettings):
         description="Nivel de logging"
     )
 
+    # AI Settings
+    openai_api_key: str = Field(
+        default="",
+        description="API key do OpenAI"
+    )
+    anthropic_api_key: str = Field(
+        default="",
+        description="API key do Anthropic"
+    )
+    gemini_api_key: str = Field(
+        default="",
+        description="API key do Google Gemini"
+    )
+    default_ai_provider: str = Field(
+        default="openai",
+        description="Provider de AI padrao"
+    )
+
     def ensure_directories(self) -> None:
         """Cria directorios necessarios se nao existirem."""
         self.export_dir.mkdir(parents=True, exist_ok=True)

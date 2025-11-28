@@ -58,7 +58,7 @@ class Business(Base):
     decision_makers: Optional[list] = Column(JSON, default=list)
 
     # Metadata de Enrichment
-    enrichment_status: str = Column(String(20), default="pending")
+    enrichment_status: str = Column(String(20), default="pending", nullable=False)
     enrichment_error: Optional[str] = Column(Text)
     enriched_at: Optional[datetime] = Column(DateTime)
 
@@ -74,13 +74,13 @@ class Business(Base):
 
     # Lead Management
     lead_score: int = Column(Integer, default=0, index=True)
-    lead_status: str = Column(String(20), default="new", index=True)
+    lead_status: str = Column(String(20), default="new", index=True, nullable=False)
     notes: Optional[str] = Column(Text)
     tags: Optional[list] = Column(JSON, default=list)
 
     # Timestamps
-    first_seen_at: datetime = Column(DateTime, default=func.now())
-    last_updated_at: datetime = Column(DateTime, default=func.now(), onupdate=func.now())
+    first_seen_at: datetime = Column(DateTime, default=func.now(), nullable=False)
+    last_updated_at: datetime = Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
     last_search_query: Optional[str] = Column(String(500))
     data_expires_at: Optional[datetime] = Column(DateTime)
 
@@ -95,6 +95,9 @@ class Business(Base):
         Index("idx_location", "latitude", "longitude"),
         Index("idx_lead_filter", "lead_status", "lead_score"),
         Index("idx_first_seen", "first_seen_at"),
+        Index("idx_enrichment", "enrichment_status", "has_website"),
+        Index("idx_score_status", "lead_score", "lead_status"),
+        Index("idx_website_score", "has_website", "lead_score"),
     )
 
     def __repr__(self) -> str:

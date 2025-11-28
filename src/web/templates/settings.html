@@ -93,10 +93,11 @@
 
                 <form id="notion-connect-form" class="space-y-4">
                     <div>
-                        <label class="block text-dark-text-secondary font-medium mb-2">API Key (Internal Integration Token)</label>
+                        <label for="notion-api-key" class="block text-dark-text-secondary font-medium mb-2">API Key (Internal Integration Token)</label>
                         <input type="password" name="api_key" id="notion-api-key" required
                                placeholder="secret_xxxxxxxxxxxxxxxxxxxx"
-                               class="w-full px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary placeholder:text-dark-text-muted">
+                               aria-label="Notion API Key"
+                               class="w-full px-4 py-2 bg-dark-surface border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition placeholder:text-dark-text-muted">
                     </div>
 
                     <button type="button" onclick="testNotionConnection()"
@@ -110,9 +111,10 @@
                 <!-- Database Selection (hidden initially) -->
                 <div id="notion-database-section" class="hidden space-y-4 pt-4 border-t border-dark-border">
                     <div>
-                        <label class="block text-dark-text-secondary font-medium mb-2">Seleciona a Database</label>
+                        <label for="notion-database-select" class="block text-dark-text-secondary font-medium mb-2">Seleciona a Database</label>
                         <select name="database_id" id="notion-database-select"
-                                class="w-full px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                                aria-label="Selecionar Notion Database"
+                                class="w-full px-4 py-2 bg-dark-surface border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                             <option value="">Seleciona uma database...</option>
                         </select>
                         <p class="text-sm text-dark-text-muted mt-1">
@@ -164,14 +166,16 @@
 
             <form id="gmaps-form" class="space-y-4">
                 <div>
-                    <label class="block text-dark-text-secondary font-medium mb-2">Google Maps API Key</label>
+                    <label for="google-maps-api-key" class="block text-dark-text-secondary font-medium mb-2">Google Maps API Key</label>
                     <div class="flex gap-2">
                         <input type="password" name="google_maps_api_key" id="google-maps-api-key"
                                value="{{ google_maps_key_masked or '' }}"
                                placeholder="AIzaSy..."
-                               class="flex-1 px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary placeholder:text-dark-text-muted">
+                               aria-label="Google Maps API Key"
+                               class="flex-1 px-4 py-2 bg-dark-surface border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition placeholder:text-dark-text-muted">
                         <button type="button" onclick="toggleApiKeyVisibility('google-maps-api-key')"
-                                class="px-3 py-2 bg-dark-surface border border-dark-border rounded-lg hover:bg-dark-card-hover transition-colors">
+                                aria-label="Mostrar/Ocultar API Key"
+                                class="px-3 py-2 bg-dark-surface border border-dark-border rounded-lg hover:bg-dark-card-hover transition">
                             <svg class="w-5 h-5 text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
@@ -308,9 +312,10 @@
 
             <!-- Default AI Provider Selection -->
             <div class="space-y-3 pt-4 border-t border-dark-border">
-                <label class="block text-dark-text-secondary font-medium">Provider Predefinido para Emails</label>
+                <label for="default-ai-provider" class="block text-dark-text-secondary font-medium">Provider Predefinido para Emails</label>
                 <select id="default-ai-provider" name="default_ai_provider"
-                        class="w-full px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary">
+                        aria-label="Provider AI Predefinido"
+                        class="w-full px-4 py-2 bg-dark-surface border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent transition">
                     <option value="">Seleciona um provider...</option>
                     <option value="openai" {% if default_ai_provider == 'openai' %}selected{% endif %}>OpenAI (ChatGPT)</option>
                     <option value="anthropic" {% if default_ai_provider == 'anthropic' %}selected{% endif %}>Anthropic (Claude)</option>
