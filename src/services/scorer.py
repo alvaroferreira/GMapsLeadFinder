@@ -1,7 +1,7 @@
 """Sistema de Lead Scoring para qualificacao de negocios."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from sqlalchemy.orm import Session
 
@@ -120,21 +120,25 @@ class LeadScorer:
                 points = rule.points if matched else 0
                 total_score += points
 
-                explanation.append({
-                    "rule": rule.name,
-                    "matched": matched,
-                    "points": points,
-                    "max_points": rule.points,
-                    "description": rule.description,
-                })
+                explanation.append(
+                    {
+                        "rule": rule.name,
+                        "matched": matched,
+                        "points": points,
+                        "max_points": rule.points,
+                        "description": rule.description,
+                    }
+                )
             except Exception as e:
-                explanation.append({
-                    "rule": rule.name,
-                    "matched": False,
-                    "points": 0,
-                    "max_points": rule.points,
-                    "description": f"Erro: {e}",
-                })
+                explanation.append(
+                    {
+                        "rule": rule.name,
+                        "matched": False,
+                        "points": 0,
+                        "max_points": rule.points,
+                        "description": f"Erro: {e}",
+                    }
+                )
 
         return explanation
 

@@ -181,15 +181,17 @@ class ExportService:
             df.to_excel(writer, sheet_name=sheet_name, index=False)
 
             # Formatacao
-            workbook = writer.book
             worksheet = writer.sheets[sheet_name]
 
             # Auto-ajustar largura das colunas
             for idx, col in enumerate(df.columns):
-                max_length = max(
-                    df[col].astype(str).map(len).max() if len(df) > 0 else 0,
-                    len(str(col)),
-                ) + 2
+                max_length = (
+                    max(
+                        df[col].astype(str).map(len).max() if len(df) > 0 else 0,
+                        len(str(col)),
+                    )
+                    + 2
+                )
                 # Converter indice para letra de coluna
                 col_letter = chr(65 + idx) if idx < 26 else chr(64 + idx // 26) + chr(65 + idx % 26)
                 worksheet.column_dimensions[col_letter].width = min(max_length, 50)

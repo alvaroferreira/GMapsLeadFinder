@@ -1,0 +1,48 @@
+<!-- Preview List without saving -->
+<div class="space-y-4">
+    <div class="bg-dark-surface rounded-xl border border-dark-border p-4">
+        <h3 class="text-sm font-semibold text-dark-text-primary mb-2">Preview - Sem Guardar</h3>
+        <p class="text-xs text-dark-text-muted">
+            Area: <span class="text-dark-text-secondary">{{ area|title }}</span> |
+            Ultimos: <span class="text-dark-text-secondary">{{ days_back }} dias</span>
+        </p>
+    </div>
+
+    {% if preview %}
+    <div class="text-xs text-dark-text-muted mb-2">
+        A mostrar {{ preview|length }} negocios
+    </div>
+
+    <div class="space-y-2">
+        {% for biz in preview %}
+        <div class="bg-dark-card rounded-lg p-3 border border-dark-border hover:border-accent-primary/50 transition">
+            <div class="flex items-start justify-between">
+                <div class="flex-1 min-w-0">
+                    <div class="font-medium text-sm text-dark-text-primary truncate">{{ biz.name }}</div>
+                    <div class="text-xs text-dark-text-muted mt-0.5">{{ biz.business_type|replace('_', ' ')|title }}</div>
+                    {% if biz.address %}
+                    <div class="text-xs text-dark-text-muted truncate mt-1">{{ biz.address }}</div>
+                    {% endif %}
+                </div>
+                <div class="ml-2">
+                    <div class="px-2 py-0.5 rounded-full text-xs font-medium {% if biz.osm_score >= 70 %}bg-accent-success/20 text-accent-success{% elif biz.osm_score >= 40 %}bg-accent-warning/20 text-accent-warning{% else %}bg-dark-surface text-dark-text-muted{% endif %}">
+                        {{ biz.osm_score }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-8 text-dark-text-muted">
+        Nenhum negocio encontrado nesta area.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+window._osmPreviewData = {{ preview | tojson if preview else '[]' | safe }};
+if (window._osmPreviewData.length > 0) {
+    updateMapMarkers(window._osmPreviewData);
+}
+</script>

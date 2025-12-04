@@ -1,8 +1,9 @@
 """Cache simples em memoria para otimizacao de performance."""
 
 import time
-from typing import Any, Callable, Optional
+from collections.abc import Callable
 from functools import wraps
+from typing import Any
 
 
 class SimpleCache:
@@ -13,7 +14,7 @@ class SimpleCache:
         self._cache: dict[str, tuple[Any, float]] = {}
         self._default_ttl = 300  # 5 minutos
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """
         Obtem valor do cache se nao expirado.
 
@@ -33,7 +34,7 @@ class SimpleCache:
 
         return value
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """
         Define valor no cache.
 
@@ -84,6 +85,7 @@ def cached(ttl: int = 300, key_prefix: str = ""):
         def get_stats():
             return expensive_operation()
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -108,4 +110,5 @@ def cached(ttl: int = 300, key_prefix: str = ""):
         wrapper.invalidate_cache = lambda: cache.invalidate_pattern(f"{key_prefix}:{func.__name__}")
 
         return wrapper
+
     return decorator

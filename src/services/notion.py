@@ -81,14 +81,14 @@ class NotionClient:
             for db_item in data.get("results", []):
                 title = ""
                 if db_item.get("title"):
-                    title = "".join(
-                        t.get("plain_text", "") for t in db_item["title"]
-                    )
-                databases.append({
-                    "id": db_item["id"],
-                    "title": title or "Sem titulo",
-                    "url": db_item.get("url", ""),
-                })
+                    title = "".join(t.get("plain_text", "") for t in db_item["title"])
+                databases.append(
+                    {
+                        "id": db_item["id"],
+                        "title": title or "Sem titulo",
+                        "url": db_item.get("url", ""),
+                    }
+                )
 
             return databases
 
@@ -374,9 +374,7 @@ class NotionService:
 
             # Converter para formato Notion
             if prop_type == "title":
-                properties[notion_name] = {
-                    "title": [{"text": {"content": str(value)[:2000]}}]
-                }
+                properties[notion_name] = {"title": [{"text": {"content": str(value)[:2000]}}]}
 
             elif prop_type == "rich_text":
                 # Tratar listas (emails_scraped, decision_makers)
@@ -400,9 +398,7 @@ class NotionService:
                 else:
                     text = str(value)
 
-                properties[notion_name] = {
-                    "rich_text": [{"text": {"content": text[:2000]}}]
-                }
+                properties[notion_name] = {"rich_text": [{"text": {"content": text[:2000]}}]}
 
             elif prop_type == "number":
                 properties[notion_name] = {"number": float(value)}
@@ -430,9 +426,7 @@ class NotionService:
 
             elif prop_type == "date":
                 if isinstance(value, datetime):
-                    properties[notion_name] = {
-                        "date": {"start": value.isoformat()}
-                    }
+                    properties[notion_name] = {"date": {"start": value.isoformat()}}
 
         return properties
 
@@ -575,11 +569,7 @@ class NotionService:
         """
         with db.get_session() as session:
             total = session.query(Business).count()
-            synced = (
-                session.query(Business)
-                .filter(Business.notion_page_id.isnot(None))
-                .count()
-            )
+            synced = session.query(Business).filter(Business.notion_page_id.isnot(None)).count()
             not_synced = total - synced
 
             return {

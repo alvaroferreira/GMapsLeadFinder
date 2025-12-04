@@ -1,15 +1,16 @@
 """Modelos Pydantic para requests e responses da Google Places API (New)."""
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
 
 # ============ Enums ============
 
+
 class PriceLevel(str, Enum):
     """Niveis de preco do Google Places."""
+
     FREE = "PRICE_LEVEL_FREE"
     INEXPENSIVE = "PRICE_LEVEL_INEXPENSIVE"
     MODERATE = "PRICE_LEVEL_MODERATE"
@@ -19,6 +20,7 @@ class PriceLevel(str, Enum):
 
 class BusinessStatus(str, Enum):
     """Status operacional do negocio."""
+
     OPERATIONAL = "OPERATIONAL"
     CLOSED_TEMPORARILY = "CLOSED_TEMPORARILY"
     CLOSED_PERMANENTLY = "CLOSED_PERMANENTLY"
@@ -26,73 +28,85 @@ class BusinessStatus(str, Enum):
 
 class RankPreference(str, Enum):
     """Preferencia de ordenacao."""
+
     POPULARITY = "POPULARITY"
     DISTANCE = "DISTANCE"
 
 
 # ============ Location Models ============
 
+
 class Location(BaseModel):
     """Coordenadas geograficas."""
+
     latitude: float = Field(..., ge=-90, le=90)
     longitude: float = Field(..., ge=-180, le=180)
 
 
 class Circle(BaseModel):
     """Circulo para definir area de pesquisa."""
+
     center: Location
     radius: float = Field(..., ge=0, le=50000, description="Raio em metros")
 
 
 class LocationRestriction(BaseModel):
     """Restricao de localizacao para Nearby Search."""
+
     circle: Circle
 
 
 class LocationBias(BaseModel):
     """Bias de localizacao para Text Search."""
+
     circle: Circle
 
 
 # ============ Place Components ============
 
+
 class DisplayName(BaseModel):
     """Nome do local com idioma."""
+
     text: str
-    languageCode: Optional[str] = None
+    languageCode: str | None = None
 
 
 class PlacePhoto(BaseModel):
     """Foto do local."""
+
     name: str
-    widthPx: Optional[int] = None
-    heightPx: Optional[int] = None
+    widthPx: int | None = None
+    heightPx: int | None = None
 
 
 class OpeningHours(BaseModel):
     """Horario de funcionamento."""
-    openNow: Optional[bool] = None
+
+    openNow: bool | None = None
 
 
 # ============ Place Model ============
 
+
 class Place(BaseModel):
     """Modelo completo de um local retornado pela API."""
+
     id: str
-    displayName: Optional[DisplayName] = None
-    formattedAddress: Optional[str] = None
-    location: Optional[Location] = None
-    types: Optional[list[str]] = None
-    businessStatus: Optional[str] = None
-    nationalPhoneNumber: Optional[str] = None
-    internationalPhoneNumber: Optional[str] = None
-    websiteUri: Optional[str] = None
-    googleMapsUri: Optional[str] = None
-    rating: Optional[float] = Field(None, ge=0, le=5)
-    userRatingCount: Optional[int] = Field(None, ge=0)
-    priceLevel: Optional[str] = None
-    photos: Optional[list[PlacePhoto]] = None
-    currentOpeningHours: Optional[OpeningHours] = None
+    displayName: DisplayName | None = None
+    formattedAddress: str | None = None
+    location: Location | None = None
+    types: list[str] | None = None
+    businessStatus: str | None = None
+    nationalPhoneNumber: str | None = None
+    internationalPhoneNumber: str | None = None
+    websiteUri: str | None = None
+    googleMapsUri: str | None = None
+    rating: float | None = Field(None, ge=0, le=5)
+    userRatingCount: int | None = Field(None, ge=0)
+    priceLevel: str | None = None
+    photos: list[PlacePhoto] | None = None
+    currentOpeningHours: OpeningHours | None = None
 
     @property
     def name(self) -> str:
@@ -117,7 +131,7 @@ class Place(BaseModel):
         return len(self.photos) if self.photos else 0
 
     @property
-    def price_level_int(self) -> Optional[int]:
+    def price_level_int(self) -> int | None:
         """Converte price level para inteiro (0-4)."""
         if not self.priceLevel:
             return None
@@ -133,32 +147,37 @@ class Place(BaseModel):
 
 # ============ Search Response ============
 
+
 class SearchResponse(BaseModel):
     """Resposta da API de pesquisa."""
+
     places: list[Place] = Field(default_factory=list)
-    nextPageToken: Optional[str] = None
+    nextPageToken: str | None = None
 
 
 # ============ Request Models ============
 
+
 class TextSearchRequest(BaseModel):
     """Request para Text Search."""
+
     textQuery: str
-    includedType: Optional[str] = None
+    includedType: str | None = None
     languageCode: str = "pt"
-    locationBias: Optional[dict] = None
+    locationBias: dict | None = None
     pageSize: int = Field(default=20, ge=1, le=20)
-    pageToken: Optional[str] = None
-    minRating: Optional[float] = Field(None, ge=0, le=5)
-    openNow: Optional[bool] = None
-    priceLevels: Optional[list[str]] = None
+    pageToken: str | None = None
+    minRating: float | None = Field(None, ge=0, le=5)
+    openNow: bool | None = None
+    priceLevels: list[str] | None = None
 
 
 class NearbySearchRequest(BaseModel):
     """Request para Nearby Search."""
+
     locationRestriction: LocationRestriction
-    includedTypes: Optional[list[str]] = None
-    excludedTypes: Optional[list[str]] = None
+    includedTypes: list[str] | None = None
+    excludedTypes: list[str] | None = None
     languageCode: str = "pt"
     maxResultCount: int = Field(default=20, ge=1, le=20)
     rankPreference: str = RankPreference.POPULARITY.value

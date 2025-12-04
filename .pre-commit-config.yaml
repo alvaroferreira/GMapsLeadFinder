@@ -1,0 +1,140 @@
+# Quality Gates - Two-Tier System
+# Baseado no Husky Setup Guide, adaptado para Python
+#
+# Nivel 1 (pre-commit): Rapido ~10s - corre sempre
+# Nivel 2 (pre-push): Lento ~60s - antes de push
+#
+# Uso:
+#   git commit -m "msg"                    -> Nivel 1 automatico
+#   pre-commit run --hook-stage push       -> Nivel 1 + 2
+#   git commit --no-verify                 -> Bypass (emergencia)
+
+default_install_hook_types: [pre-commit, pre-push]
+
+repos:
+  # ============================================================
+  # NIVEL 1 - RAPIDO (sempre corre em cada commit)
+  # ============================================================
+
+  # Secret Detection - Bloqueia secrets antes de commit
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: '\.env\.example$|tests/.*\.py$|\.md$'
+
+  # Pre-commit Hooks Padrao
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: check-yaml
+        args: ['--unsafe']
+      - id: check-json
+        exclude: '\.ipynb$'
+      - id: end-of-file-fixer
+        exclude: '\.svg$|\.lock$'
+      - id: trailing-whitespace
+        exclude: '\.md$'
+      - id: no-commit-to-branch
+        args: ['--branch', 'main', '--branch', 'master']
+
+  # Ruff - Linting + Formatting (substitui ESLint + Prettier)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.8
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # Hooks Locais - Customizados para Geoscout Pro
+  - repo: local
+    hooks:
+      # Bloqueia .env files de serem commitados
+      - id: no-env-files
+        name: Block .env files
+        entry: >
+          bash -c '
+          if git diff --cached --name-only | grep -E "^\.env$|\.env\.local$|\.env\.production$"; then
+            echo "ERROR: .env files cannot be committed!";
+            exit 1;
+          fi
+          '
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Bloqueia breakpoint() exceto em testes
+      - id: no-debug-code
+        name: Check for breakpoint() calls
+        entry: >
+          bash -c '
+          for f in $(git diff --cached --name-only | grep -E "\.py$" | grep -v "tests/"); do
+            if grep -n "breakpoint()" "$f" 2>/dev/null; then
+              echo "ERROR: breakpoint() found in $f";
+              exit 1;
+            fi;
+          done
+          '
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+
+      # Verifica secrets hardcoded com regex
+      - id: no-hardcoded-secrets
+        name: Check for hardcoded API keys
+        entry: python scripts/check_secrets.py
+        language: system
+        types: [python]
+        exclude: 'tests/.*|conftest\.py'
+        stages: [pre-commit]
+
+  # ============================================================
+  # NIVEL 2 - LENTO (corre antes de push)
+  # ============================================================
+
+  - repo: local
+    hooks:
+      # Type Checking com mypy (strict mode)
+      - id: mypy
+        name: Type check with mypy (strict)
+        entry: >
+          bash -c '
+          source venv/bin/activate 2>/dev/null || true;
+          mypy src/ --ignore-missing-imports --strict
+          '
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+
+      # Testes Unitarios
+      - id: pytest-unit
+        name: Run unit tests
+        entry: >
+          bash -c '
+          source venv/bin/activate 2>/dev/null || true;
+          pytest tests/unit/ -q --tb=no -x
+          '
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true
+
+      # Coverage Gate (70% minimo)
+      - id: pytest-coverage
+        name: Check test coverage >= 70%
+        entry: >
+          bash -c '
+          source venv/bin/activate 2>/dev/null || true;
+          pytest tests/unit/ --cov=src --cov-report=term-missing --cov-fail-under=70 -q --tb=no
+          '
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+        always_run: true

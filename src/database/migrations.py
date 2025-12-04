@@ -5,8 +5,6 @@ Este ficheiro documenta as mudancas no schema da base de dados
 e fornece scripts para aplicar/reverter migrations.
 """
 
-from datetime import datetime
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -46,46 +44,60 @@ class Migration001_AddConstraintsAndIndexes(Migration):
         # Para PostgreSQL
         if db.is_postgresql:
             # Adicionar constraints NOT NULL (se ainda nao existem)
-            session.execute(text("""
+            session.execute(
+                text("""
                 ALTER TABLE businesses
                 ALTER COLUMN lead_status SET NOT NULL,
                 ALTER COLUMN enrichment_status SET NOT NULL,
                 ALTER COLUMN first_seen_at SET NOT NULL,
                 ALTER COLUMN last_updated_at SET NOT NULL;
-            """))
+            """)
+            )
 
             # Adicionar indices compostos (IF NOT EXISTS e PostgreSQL 9.5+)
-            session.execute(text("""
+            session.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_enrichment
                 ON businesses (enrichment_status, has_website);
-            """))
+            """)
+            )
 
-            session.execute(text("""
+            session.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_score_status
                 ON businesses (lead_score, lead_status);
-            """))
+            """)
+            )
 
-            session.execute(text("""
+            session.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_website_score
                 ON businesses (has_website, lead_score);
-            """))
+            """)
+            )
 
         # Para SQLite (nao suporta ALTER COLUMN, apenas CREATE INDEX)
         else:
-            session.execute(text("""
+            session.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_enrichment
                 ON businesses (enrichment_status, has_website);
-            """))
+            """)
+            )
 
-            session.execute(text("""
+            session.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_score_status
                 ON businesses (lead_score, lead_status);
-            """))
+            """)
+            )
 
-            session.execute(text("""
+            session.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_website_score
                 ON businesses (has_website, lead_score);
-            """))
+            """)
+            )
 
         session.commit()
 
@@ -98,13 +110,15 @@ class Migration001_AddConstraintsAndIndexes(Migration):
 
         # Para PostgreSQL, remover constraints
         if db.is_postgresql:
-            session.execute(text("""
+            session.execute(
+                text("""
                 ALTER TABLE businesses
                 ALTER COLUMN lead_status DROP NOT NULL,
                 ALTER COLUMN enrichment_status DROP NOT NULL,
                 ALTER COLUMN first_seen_at DROP NOT NULL,
                 ALTER COLUMN last_updated_at DROP NOT NULL;
-            """))
+            """)
+            )
 
         session.commit()
 

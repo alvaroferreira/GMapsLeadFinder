@@ -21,20 +21,19 @@ import os
 import secrets
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
-from typing import Callable, Dict, Optional
+from collections.abc import Callable
+from datetime import datetime
 
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
+
 # Security Logging Setup
 security_logger = logging.getLogger("security")
 security_logger.setLevel(logging.INFO)
 handler = logging.FileHandler("security.log")
-handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(levelname)s - %(message)s - %(extra)s")
-)
+handler.setFormatter(logging.Formatter("%(asctime)s - %(levelname)s - %(message)s - %(extra)s"))
 security_logger.addHandler(handler)
 
 
@@ -85,7 +84,7 @@ def verify_csrf_token(request: Request, token: str) -> bool:
     session_token = request.session.get("csrf_token")
     if not session_token or not secrets.compare_digest(session_token, token):
         security_logger.warning(
-            f"CSRF validation failed",
+            "CSRF validation failed",
             extra={
                 "path": request.url.path,
                 "method": request.method,
@@ -149,9 +148,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         # SECURITY: Permissions policy - disable unnecessary features
-        response.headers["Permissions-Policy"] = (
-            "geolocation=(), microphone=(), camera=()"
-        )
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
 
         return response
 
@@ -181,7 +178,7 @@ class RateLimiter:
         """
         self.requests = requests
         self.window = window
-        self.clients: Dict[str, list] = defaultdict(list)
+        self.clients: dict[str, list] = defaultdict(list)
 
     def is_allowed(self, client_id: str) -> bool:
         """
@@ -212,7 +209,9 @@ class RateLimiter:
 
 # Global rate limiter instances
 rate_limiter = RateLimiter(requests=100, window=60)  # 100 requests per minute
-strict_rate_limiter = RateLimiter(requests=10, window=60)  # 10 requests per minute for sensitive endpoints
+strict_rate_limiter = RateLimiter(
+    requests=10, window=60
+)  # 10 requests per minute for sensitive endpoints
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -326,7 +325,7 @@ def validate_pagination(page: int, limit: int) -> tuple[int, int]:
 def log_security_event(
     event_type: str,
     request: Request,
-    details: Optional[Dict] = None,
+    details: dict | None = None,
     severity: str = "INFO",
 ):
     """

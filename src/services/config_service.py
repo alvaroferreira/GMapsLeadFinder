@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from typing import Any
 
 from src.exceptions import ConfigurationError
 
@@ -41,7 +40,7 @@ class ConfigService:
             return env_vars
 
         try:
-            with open(self.env_path, "r") as f:
+            with open(self.env_path) as f:
                 for line in f:
                     line = line.strip()
                     if line and not line.startswith("#") and "=" in line:
@@ -70,7 +69,7 @@ class ConfigService:
         try:
             # Ler ficheiro existente para manter comentarios
             if self.env_path.exists():
-                with open(self.env_path, "r") as f:
+                with open(self.env_path) as f:
                     env_vars_to_write = env_vars.copy()
 
                     for line in f:

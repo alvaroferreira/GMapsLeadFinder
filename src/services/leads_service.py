@@ -14,6 +14,7 @@ from src.services.scorer import LeadScorer
 @dataclass
 class LeadUpdate:
     """Dados para atualizacao de um lead."""
+
     status: str | None = None
     notes: str | None = None
     tags: list[str] | None = None
@@ -22,6 +23,7 @@ class LeadUpdate:
 @dataclass
 class LeadFilters:
     """Filtros para pesquisa de leads."""
+
     status: str | None = None
     min_score: int | None = None
     max_score: int | None = None
@@ -142,6 +144,7 @@ class LeadsService:
         # Validar status se fornecido
         if update.status:
             from src.database.models import LEAD_STATUSES
+
             if update.status not in LEAD_STATUSES:
                 raise ValidationError(
                     f"Status invalido: {update.status}",

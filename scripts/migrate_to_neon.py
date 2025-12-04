@@ -17,21 +17,22 @@ import os
 import sys
 from pathlib import Path
 
+
 # Adicionar root do projeto ao path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from src.database.models import (
+    AutomationLog,
     Base,
     Business,
-    SearchHistory,
     BusinessSnapshot,
-    TrackedSearch,
-    AutomationLog,
-    Notification,
     IntegrationConfig,
+    Notification,
+    SearchHistory,
+    TrackedSearch,
 )
 
 
@@ -55,10 +56,7 @@ def migrate_data():
 
     # Conectar ao SQLite
     print("\n[1/5] Conectando ao SQLite...")
-    sqlite_engine = create_engine(
-        SQLITE_URL,
-        connect_args={"check_same_thread": False}
-    )
+    sqlite_engine = create_engine(SQLITE_URL, connect_args={"check_same_thread": False})
     SQLiteSession = sessionmaker(bind=sqlite_engine)
     sqlite_session = SQLiteSession()
 
@@ -111,10 +109,10 @@ def migrate_data():
                     record_dict[column.name] = getattr(record, column.name)
 
                 # Verificar se ja existe (por ID)
-                if hasattr(model, 'id'):
-                    existing = neon_session.query(model).filter(
-                        model.id == record_dict.get('id')
-                    ).first()
+                if hasattr(model, "id"):
+                    existing = (
+                        neon_session.query(model).filter(model.id == record_dict.get("id")).first()
+                    )
                     if existing:
                         continue
 

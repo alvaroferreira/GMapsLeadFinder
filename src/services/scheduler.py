@@ -290,11 +290,7 @@ class NotificationService:
             if unread_only:
                 query = query.filter(Notification.is_read == False)  # noqa: E712
 
-            notifications = (
-                query.order_by(Notification.created_at.desc())
-                .limit(limit)
-                .all()
-            )
+            notifications = query.order_by(Notification.created_at.desc()).limit(limit).all()
 
             return [
                 {
@@ -428,11 +424,7 @@ class AutomationService:
             if tracked_id:
                 query = query.filter(AutomationLog.tracked_search_id == tracked_id)
 
-            logs = (
-                query.order_by(AutomationLog.executed_at.desc())
-                .limit(limit)
-                .all()
-            )
+            logs = query.order_by(AutomationLog.executed_at.desc()).limit(limit).all()
 
             return [
                 {

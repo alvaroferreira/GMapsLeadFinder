@@ -1,7 +1,5 @@
 """Testes para o sistema de lead scoring."""
 
-import pytest
-
 from src.services.scorer import LeadScorer, ScoringRule
 
 

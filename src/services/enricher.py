@@ -246,13 +246,24 @@ class WebsiteScraper:
 
         # Procurar padroes comuns de equipa/sobre
         role_keywords = [
-            "ceo", "founder", "fundador", "owner", "proprietario",
-            "director", "diretor", "manager", "gerente",
-            "socio", "partner", "presidente",
+            "ceo",
+            "founder",
+            "fundador",
+            "owner",
+            "proprietario",
+            "director",
+            "diretor",
+            "manager",
+            "gerente",
+            "socio",
+            "partner",
+            "presidente",
         ]
 
         # Procurar em elementos estruturados
-        for element in soup.find_all(["div", "section", "article"], class_=re.compile(r"team|equip|about|member", re.I)):
+        for element in soup.find_all(
+            ["div", "section", "article"], class_=re.compile(r"team|equip|about|member", re.I)
+        ):
             text = element.get_text(separator=" ", strip=True)
 
             # Procurar nomes com cargos
@@ -269,11 +280,13 @@ class WebsiteScraper:
                         matches = re.findall(pattern, text, re.IGNORECASE)
                         for name in matches:
                             if name and len(name) > 3:
-                                decision_makers.append({
-                                    "name": name.strip(),
-                                    "role": keyword.title(),
-                                    "source": "website",
-                                })
+                                decision_makers.append(
+                                    {
+                                        "name": name.strip(),
+                                        "role": keyword.title(),
+                                        "source": "website",
+                                    }
+                                )
 
         # Remover duplicados
         seen = set()

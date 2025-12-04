@@ -1,7 +1,7 @@
 """Queries reutilizaveis para a base de dados."""
 
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -13,22 +13,22 @@ class BusinessQueries:
     """Queries para a tabela de negocios."""
 
     @staticmethod
-    def get_by_id(session: Session, place_id: str) -> Optional[Business]:
+    def get_by_id(session: Session, place_id: str) -> Business | None:
         """Retorna negocio por ID."""
         return session.query(Business).filter(Business.id == place_id).first()
 
     @staticmethod
     def get_all(
         session: Session,
-        status: Optional[str] = None,
-        min_score: Optional[int] = None,
-        max_score: Optional[int] = None,
-        place_type: Optional[str] = None,
-        has_website: Optional[bool] = None,
-        city: Optional[str] = None,
-        first_seen_since: Optional[datetime] = None,
-        first_seen_from: Optional[datetime] = None,
-        first_seen_to: Optional[datetime] = None,
+        status: str | None = None,
+        min_score: int | None = None,
+        max_score: int | None = None,
+        place_type: str | None = None,
+        has_website: bool | None = None,
+        city: str | None = None,
+        first_seen_since: datetime | None = None,
+        first_seen_from: datetime | None = None,
+        first_seen_to: datetime | None = None,
         limit: int = 100,
         offset: int = 0,
         order_by: str = "lead_score",
@@ -68,9 +68,7 @@ class BusinessQueries:
             query = query.filter(Business.formatted_address.ilike(f"%{city}%"))
         if place_type:
             # Para SQLite com JSON, usar cast para string e LIKE
-            query = query.filter(
-                func.cast(Business.place_types, str).ilike(f"%{place_type}%")
-            )
+            query = query.filter(func.cast(Business.place_types, str).ilike(f"%{place_type}%"))
         if first_seen_since:
             query = query.filter(Business.first_seen_at >= first_seen_since)
         if first_seen_from:
@@ -133,11 +131,23 @@ class BusinessQueries:
         if existing:
             # Update apenas campos que mudaram
             update_fields = [
-                "name", "formatted_address", "latitude", "longitude",
-                "place_types", "business_status", "phone_number",
-                "international_phone", "website", "google_maps_url",
-                "rating", "review_count", "price_level", "has_website",
-                "has_photos", "photo_count", "last_search_query",
+                "name",
+                "formatted_address",
+                "latitude",
+                "longitude",
+                "place_types",
+                "business_status",
+                "phone_number",
+                "international_phone",
+                "website",
+                "google_maps_url",
+                "rating",
+                "review_count",
+                "price_level",
+                "has_website",
+                "has_photos",
+                "photo_count",
+                "last_search_query",
             ]
             for field in update_fields:
                 new_value = getattr(business, field, None)
@@ -158,8 +168,8 @@ class BusinessQueries:
         session: Session,
         place_id: str,
         status: str,
-        notes: Optional[str] = None,
-    ) -> Optional[Business]:
+        notes: str | None = None,
+    ) -> Business | None:
         """Atualiza status e notas de um lead."""
         business = session.query(Business).filter(Business.id == place_id).first()
         if business:
@@ -170,7 +180,7 @@ class BusinessQueries:
         return business
 
     @staticmethod
-    def update_score(session: Session, place_id: str, score: int) -> Optional[Business]:
+    def update_score(session: Session, place_id: str, score: int) -> Business | None:
         """Atualiza score de um lead."""
         business = session.query(Business).filter(Business.id == place_id).first()
         if business:
@@ -189,8 +199,8 @@ class BusinessQueries:
     @staticmethod
     def count(
         session: Session,
-        status: Optional[str] = None,
-        first_seen_since: Optional[datetime] = None,
+        status: str | None = None,
+        first_seen_since: datetime | None = None,
     ) -> int:
         """Conta total de negocios."""
         query = session.query(func.count(Business.id))
@@ -214,12 +224,16 @@ class BusinessQueries:
 
         # Metricas
         avg_score = session.query(func.avg(Business.lead_score)).scalar() or 0
-        avg_rating = session.query(func.avg(Business.rating)).filter(Business.rating.isnot(None)).scalar() or 0
+        avg_rating = (
+            session.query(func.avg(Business.rating)).filter(Business.rating.isnot(None)).scalar()
+            or 0
+        )
 
         no_website = (
             session.query(func.count(Business.id))
             .filter(Business.has_website == False)  # noqa: E712
-            .scalar() or 0
+            .scalar()
+            or 0
         )
 
         # Novos esta semana
@@ -227,7 +241,8 @@ class BusinessQueries:
         new_this_week = (
             session.query(func.count(Business.id))
             .filter(Business.first_seen_at >= week_ago)
-            .scalar() or 0
+            .scalar()
+            or 0
         )
 
         return {
@@ -389,7 +404,7 @@ class TrackedSearchQueries:
         )
 
     @staticmethod
-    def mark_executed(session: Session, tracked_id: int) -> Optional[TrackedSearch]:
+    def mark_executed(session: Session, tracked_id: int) -> TrackedSearch | None:
         """Marca pesquisa como executada e agenda proxima."""
         tracked = session.query(TrackedSearch).filter(TrackedSearch.id == tracked_id).first()
         if tracked:

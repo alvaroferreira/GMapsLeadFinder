@@ -1,38 +1,37 @@
 """Servidor FastAPI para interface web."""
 
-import asyncio
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, Form, Query, Request, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from src.config import settings
 from src.database.db import db
-from src.database.models import LEAD_STATUSES, ENRICHMENT_STATUSES
+from src.database.models import ENRICHMENT_STATUSES, LEAD_STATUSES
 from src.database.queries import BusinessQueries, SearchHistoryQueries
 from src.services.enricher import EnrichmentService
 from src.services.exporter import ExportService
 from src.services.notion import NotionService
-from src.services.scheduler import AutomationService, AutomationScheduler, NotificationService
+from src.services.osm_discovery import OSMDiscoveryService
+from src.services.scheduler import AutomationScheduler, AutomationService, NotificationService
 from src.services.scorer import LeadScorer
 from src.services.search import SearchService
-from src.services.tracker import TrackerService
 from src.web.optimizations import (
+    businesses_to_dicts,
     get_notion_config_cached,
     get_stats_cached,
     invalidate_notion_cache,
     invalidate_stats_cache,
-    businesses_to_dicts,
 )
 
 
 # ============ HELPERS ============
+
 
 class DictToObject:
     """Helper class para converter dicts em objetos para templates."""
@@ -66,6 +65,7 @@ db.create_tables()
 
 # ============ HEALTH CHECK ============
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint para Railway/Docker."""
@@ -73,6 +73,7 @@ async def health_check():
 
 
 # ============ PAGINAS ============
+
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
@@ -160,7 +161,9 @@ async def do_search(
     if date_from:
         first_seen_from = datetime.strptime(date_from, "%Y-%m-%d")
     if date_to:
-        first_seen_to = datetime.strptime(date_to, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+        first_seen_to = datetime.strptime(date_to, "%Y-%m-%d").replace(
+            hour=23, minute=59, second=59
+        )
 
     # Parse only_new flag
     show_only_new = only_new == "yes"
@@ -169,6 +172,7 @@ async def do_search(
     existing_ids = set()
     if not show_only_new:
         from src.database.models import Business
+
         with db.get_session() as session:
             # Query otimizada: buscar apenas IDs
             existing_ids = {row[0] for row in session.query(Business.id).all()}
@@ -206,19 +210,21 @@ async def do_search(
                 if show_only_new and not is_new:
                     continue
 
-                leads.append({
-                    "id": b.id,
-                    "name": b.name,
-                    "formatted_address": b.formatted_address,
-                    "latitude": b.latitude,
-                    "longitude": b.longitude,
-                    "rating": b.rating,
-                    "review_count": b.review_count,
-                    "lead_score": b.lead_score,
-                    "has_website": b.has_website,
-                    "is_new": is_new,
-                    "first_seen_at": b.first_seen_at,
-                })
+                leads.append(
+                    {
+                        "id": b.id,
+                        "name": b.name,
+                        "formatted_address": b.formatted_address,
+                        "latitude": b.latitude,
+                        "longitude": b.longitude,
+                        "rating": b.rating,
+                        "review_count": b.review_count,
+                        "lead_score": b.lead_score,
+                        "has_website": b.has_website,
+                        "is_new": is_new,
+                        "first_seen_at": b.first_seen_at,
+                    }
+                )
 
         return templates.TemplateResponse(
             "partials/search_result.html",
@@ -268,7 +274,9 @@ async def leads_page(
     if date_from:
         first_seen_from = datetime.strptime(date_from, "%Y-%m-%d")
     if date_to:
-        first_seen_to = datetime.strptime(date_to, "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+        first_seen_to = datetime.strptime(date_to, "%Y-%m-%d").replace(
+            hour=23, minute=59, second=59
+        )
 
     with db.get_session() as session:
         businesses_db = BusinessQueries.get_all(
@@ -334,6 +342,7 @@ async def lead_detail(request: Request, place_id: str):
         notion_active = False
         try:
             from src.database.models import IntegrationConfig
+
             notion_config = session.query(IntegrationConfig).filter_by(service="notion").first()
             notion_active = notion_config and notion_config.is_active
         except Exception:
@@ -365,6 +374,7 @@ async def get_lead_drawer(place_id: str, request: Request):
         notion_active = False
         try:
             from src.database.models import IntegrationConfig
+
             notion_config = session.query(IntegrationConfig).filter_by(service="notion").first()
             notion_active = notion_config and notion_config.is_active
         except Exception:
@@ -377,7 +387,7 @@ async def get_lead_drawer(place_id: str, request: Request):
                 "business": business,
                 "statuses": statuses,
                 "notion_active": notion_active,
-            }
+            },
         )
 
 
@@ -401,6 +411,7 @@ async def update_lead(
             business.lead_status = status
         if notes:
             from datetime import datetime
+
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
             existing = business.notes or ""
             business.notes = f"{existing}\n[{timestamp}] {notes}".strip()
@@ -563,7 +574,162 @@ async def stats_page(request: Request):
     )
 
 
+# ============ OSM DISCOVERY ============
+
+
+@app.get("/discover", response_class=HTMLResponse)
+async def discover_page(request: Request):
+    """Pagina de descoberta de novos negocios via OpenStreetMap."""
+    osm_service = OSMDiscoveryService()
+
+    # Obter areas disponiveis e tipos de negocio
+    available_areas = list(osm_service.client.BOUNDING_BOXES.keys())
+    business_types = osm_service.get_business_types()
+
+    # Health check rapido
+    health = await osm_service.health_check()
+
+    return templates.TemplateResponse(
+        "discover.html",
+        {
+            "request": request,
+            "available_areas": available_areas,
+            "business_types": business_types,
+            "default_area": settings.osm_default_area,
+            "default_days": settings.osm_discovery_days,
+            "osm_healthy": health.get("status") == "healthy",
+        },
+    )
+
+
+@app.post("/discover", response_class=HTMLResponse)
+async def do_discover(
+    request: Request,
+    location: str = Form("lisboa"),
+    days_back: int = Form(7),
+    business_type: str = Form(""),
+    save_to_db: str = Form("yes"),
+):
+    """Executa descoberta de negocios via OSM."""
+    osm_service = OSMDiscoveryService()
+    should_save = save_to_db == "yes"
+    biz_type = business_type if business_type else None
+
+    try:
+        # Usar descoberta por texto (suporta tanto areas predefinidas como texto livre)
+        result, location_info = await osm_service.discover_by_text(
+            location_query=location,
+            days_back=days_back,
+            business_type=biz_type,
+            save_to_db=should_save,
+        )
+
+        # Invalidar cache de stats se guardou na DB
+        if should_save and result.new_businesses > 0:
+            invalidate_stats_cache()
+
+        # Buscar preview dos negocios encontrados
+        preview, _ = await osm_service.preview_by_text(
+            location_query=location,
+            days_back=days_back,
+            business_type=biz_type,
+            limit=50,
+        )
+
+        return templates.TemplateResponse(
+            "partials/discover_result.html",
+            {
+                "request": request,
+                "result": result,
+                "preview": preview,
+                "saved": should_save,
+                "location_info": location_info,
+            },
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "partials/error.html",
+            {"request": request, "message": f"Erro na descoberta OSM: {str(e)}"},
+        )
+
+
+@app.get("/discover/preview", response_class=HTMLResponse)
+async def discover_preview(
+    request: Request,
+    area: str = Query("lisboa"),
+    days_back: int = Query(7),
+    limit: int = Query(20),
+):
+    """Preview de negocios sem guardar."""
+    osm_service = OSMDiscoveryService()
+
+    try:
+        preview = await osm_service.preview(
+            area=area,
+            days_back=days_back,
+            limit=limit,
+        )
+
+        return templates.TemplateResponse(
+            "partials/discover_preview.html",
+            {
+                "request": request,
+                "preview": preview,
+                "area": area,
+                "days_back": days_back,
+            },
+        )
+    except Exception as e:
+        return templates.TemplateResponse(
+            "partials/error.html",
+            {"request": request, "message": f"Erro no preview: {str(e)}"},
+        )
+
+
+@app.get("/api/osm/health")
+async def api_osm_health():
+    """API: Health check do servico OSM."""
+    osm_service = OSMDiscoveryService()
+    return await osm_service.health_check()
+
+
+@app.get("/api/osm/count")
+async def api_osm_count(
+    area: str = Query("lisboa"),
+    days_back: int = Query(7),
+):
+    """API: Contagem de negocios novos por tipo."""
+    osm_service = OSMDiscoveryService()
+    try:
+        counts = await osm_service.client.count_new_businesses(
+            area=area,
+            days_back=days_back,
+        )
+        return {"area": area, "days_back": days_back, "counts": counts}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@app.get("/api/osm/locations")
+async def api_osm_locations(q: str = Query(..., min_length=2)):
+    """API: Autocomplete de localizacoes via Nominatim."""
+    osm_service = OSMDiscoveryService()
+    try:
+        locations = await osm_service.search_locations(q, limit=5)
+        return {"locations": locations}
+    except Exception as e:
+        return {"error": str(e), "locations": []}
+
+
+@app.get("/api/osm/business-types")
+async def api_osm_business_types():
+    """API: Lista de tipos de negocio disponiveis."""
+    osm_service = OSMDiscoveryService()
+    return osm_service.get_business_types()
+
+
 # ============ ENRICHMENT ============
+
 
 @app.get("/enrichment", response_class=HTMLResponse)
 async def enrichment_page(request: Request):
@@ -780,6 +946,7 @@ async def automation_logs_page(request: Request, tracked_id: int):
 
 # ============ NOTIFICATIONS ============
 
+
 @app.get("/notifications", response_class=HTMLResponse)
 async def notifications_page(
     request: Request,
@@ -842,6 +1009,7 @@ async def api_unread_notifications() -> dict:
 
 # ============ SETTINGS ============
 
+
 def _get_env_file_path() -> Path:
     """Retorna o caminho do ficheiro .env."""
     return Path(__file__).parent.parent.parent / ".env"
@@ -852,7 +1020,7 @@ def _read_env_file() -> dict:
     env_path = _get_env_file_path()
     env_vars = {}
     if env_path.exists():
-        with open(env_path, "r") as f:
+        with open(env_path) as f:
             for line in f:
                 line = line.strip()
                 if line and not line.startswith("#") and "=" in line:
@@ -868,7 +1036,7 @@ def _write_env_file(env_vars: dict) -> None:
 
     # Ler ficheiro existente para manter comentarios
     if env_path.exists():
-        with open(env_path, "r") as f:
+        with open(env_path) as f:
             for line in f:
                 stripped = line.strip()
                 if stripped.startswith("#") or not stripped:
@@ -903,12 +1071,16 @@ async def settings_page(request: Request):
     notion_config = notion.get_config()
     sync_stats = notion.get_sync_stats()
 
-    # Ler API keys do .env
+    # Ler API keys e estados enabled do .env
     env_vars = _read_env_file()
     google_maps_key = env_vars.get("GOOGLE_PLACES_API_KEY", "")
+    google_maps_enabled = env_vars.get("GOOGLE_PLACES_ENABLED", "true").lower() == "true"
     openai_key = env_vars.get("OPENAI_API_KEY", "")
+    openai_enabled = env_vars.get("OPENAI_ENABLED", "true").lower() == "true"
     anthropic_key = env_vars.get("ANTHROPIC_API_KEY", "")
+    anthropic_enabled = env_vars.get("ANTHROPIC_ENABLED", "true").lower() == "true"
     gemini_key = env_vars.get("GEMINI_API_KEY", "")
+    gemini_enabled = env_vars.get("GEMINI_ENABLED", "true").lower() == "true"
     default_ai_provider = env_vars.get("DEFAULT_AI_PROVIDER", "")
 
     # Converter config para objeto para template
@@ -925,15 +1097,20 @@ async def settings_page(request: Request):
             "notion_config": notion_config_obj,
             "sync_stats": sync_stats,
             # Google Maps
-            "google_maps_configured": bool(google_maps_key) and google_maps_key != "your_api_key_here",
+            "google_maps_configured": bool(google_maps_key)
+            and google_maps_key != "your_api_key_here",
             "google_maps_key_masked": _mask_api_key(google_maps_key) if google_maps_key else "",
+            "google_maps_enabled": google_maps_enabled,
             # AI Providers
             "openai_configured": bool(openai_key),
             "openai_key_masked": _mask_api_key(openai_key) if openai_key else "",
+            "openai_enabled": openai_enabled,
             "anthropic_configured": bool(anthropic_key),
             "anthropic_key_masked": _mask_api_key(anthropic_key) if anthropic_key else "",
+            "anthropic_enabled": anthropic_enabled,
             "gemini_configured": bool(gemini_key),
             "gemini_key_masked": _mask_api_key(gemini_key) if gemini_key else "",
+            "gemini_enabled": gemini_enabled,
             "default_ai_provider": default_ai_provider,
         },
     )
@@ -989,6 +1166,36 @@ async def save_ai_settings(
 
         _write_env_file(env_vars)
         return {"success": True}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/settings/api/toggle")
+async def toggle_api(api_name: str = Form(...), enabled: str = Form(...)):
+    """Toggle para ligar/desligar APIs sem perder as credenciais."""
+    try:
+        env_vars = _read_env_file()
+        enabled_bool = enabled.lower() == "true"
+
+        # Mapeamento de nomes para variaveis de ambiente
+        api_map = {
+            "google_maps": "GOOGLE_PLACES_ENABLED",
+            "openai": "OPENAI_ENABLED",
+            "anthropic": "ANTHROPIC_ENABLED",
+            "gemini": "GEMINI_ENABLED",
+        }
+
+        if api_name not in api_map:
+            return {"success": False, "error": f"API desconhecida: {api_name}"}
+
+        env_key = api_map[api_name]
+        env_vars[env_key] = "true" if enabled_bool else "false"
+        _write_env_file(env_vars)
+
+        # Atualizar variavel de ambiente em runtime
+        os.environ[env_key] = "true" if enabled_bool else "false"
+
+        return {"success": True, "enabled": enabled_bool}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -1053,6 +1260,7 @@ async def disconnect_notion():
 
 
 # ============ NOTION SYNC ============
+
 
 @app.post("/notion/sync/{place_id}", response_class=HTMLResponse)
 async def sync_lead_to_notion(request: Request, place_id: str):
@@ -1120,6 +1328,7 @@ async def api_notion_status():
 
 
 # ============ API JSON ============
+
 
 @app.get("/api/stats")
 async def api_stats() -> dict[str, Any]:

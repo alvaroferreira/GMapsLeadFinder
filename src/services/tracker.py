@@ -196,9 +196,7 @@ class TrackerService:
             TrackingResult ou None se nao encontrada
         """
         with db.get_session() as session:
-            tracked = session.query(TrackedSearch).filter(
-                TrackedSearch.id == tracked_id
-            ).first()
+            tracked = session.query(TrackedSearch).filter(TrackedSearch.id == tracked_id).first()
 
             if not tracked or not tracked.is_active:
                 return None

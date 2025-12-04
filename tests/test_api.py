@@ -4,14 +4,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
+from src.api.google_places import GooglePlacesClient
 from src.api.models import (
-    Place,
-    SearchResponse,
     DisplayName,
-    Location,
+    Place,
     PlacePhoto,
+    SearchResponse,
 )
-from src.api.google_places import GooglePlacesClient, GooglePlacesAuthError
 
 
 class TestPlaceModel:

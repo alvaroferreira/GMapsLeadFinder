@@ -146,14 +146,34 @@
                     <p class="text-sm text-dark-text-secondary">Para pesquisas de negocios e visualizacao no mapa</p>
                 </div>
             </div>
-            {% if google_maps_configured %}
-            <span class="px-3 py-1 bg-accent-success/10 text-accent-success border border-accent-success/20 rounded-full text-sm font-medium">Configurado</span>
-            {% else %}
-            <span class="px-3 py-1 bg-accent-warning/10 text-accent-warning border border-accent-warning/20 rounded-full text-sm font-medium">Nao Configurado</span>
-            {% endif %}
+            <div class="flex items-center gap-3">
+                {% if google_maps_configured %}
+                <span class="px-3 py-1 bg-accent-success/10 text-accent-success border border-accent-success/20 rounded-full text-sm font-medium">Configurado</span>
+                {% else %}
+                <span class="px-3 py-1 bg-accent-warning/10 text-accent-warning border border-accent-warning/20 rounded-full text-sm font-medium">Nao Configurado</span>
+                {% endif %}
+                <!-- Toggle Switch -->
+                {% if google_maps_configured %}
+                <label class="relative inline-flex items-center cursor-pointer" title="Ligar/Desligar API">
+                    <input type="checkbox" id="toggle-google-maps" class="sr-only peer" {% if google_maps_enabled %}checked{% endif %}
+                           onchange="toggleApi('google_maps', this.checked)">
+                    <div class="w-11 h-6 bg-dark-surface peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent-success"></div>
+                </label>
+                {% endif %}
+            </div>
         </div>
 
         <div class="p-6 space-y-4">
+            {% if google_maps_configured and not google_maps_enabled %}
+            <div class="bg-accent-warning/10 border border-accent-warning/20 rounded-lg p-3 mb-4">
+                <div class="flex items-center gap-2 text-accent-warning text-sm">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span>API desativada - as credenciais estao guardadas mas a API nao sera utilizada</span>
+                </div>
+            </div>
+            {% endif %}
             <div class="bg-accent-primary/10 border border-accent-primary/20 rounded-lg p-4">
                 <h3 class="font-medium text-accent-primary">Como obter:</h3>
                 <ol class="text-sm text-dark-text-secondary mt-2 space-y-1 list-decimal list-inside">
@@ -225,12 +245,19 @@
                             <p class="text-xs text-dark-text-muted">GPT-4, GPT-3.5-turbo</p>
                         </div>
                     </div>
-                    {% if openai_configured %}
-                    <span class="px-2 py-1 bg-accent-success/10 text-accent-success text-xs rounded-full">Ativo</span>
-                    {% endif %}
+                    <div class="flex items-center gap-2">
+                        {% if openai_configured %}
+                        <span class="px-2 py-1 bg-accent-success/10 text-accent-success text-xs rounded-full">{% if openai_enabled %}Ativo{% else %}Pausado{% endif %}</span>
+                        <label class="relative inline-flex items-center cursor-pointer" title="Ligar/Desligar">
+                            <input type="checkbox" id="toggle-openai" class="sr-only peer" {% if openai_enabled %}checked{% endif %}
+                                   onchange="toggleApi('openai', this.checked)">
+                            <div class="w-9 h-5 bg-dark-surface peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-success"></div>
+                        </label>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="flex gap-2">
-                    <input type="password" name="openai_api_key" id="openai-api-key"
+                    <input type="password" name="openai_api_key" id="openai-api-key" {% if openai_configured and not openai_enabled %}disabled{% endif %}
                            value="{{ openai_key_masked or '' }}"
                            placeholder="sk-..."
                            class="flex-1 px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary placeholder:text-dark-text-muted text-sm">
@@ -258,12 +285,19 @@
                             <p class="text-xs text-dark-text-muted">Claude 3.5 Sonnet, Claude 3 Opus</p>
                         </div>
                     </div>
-                    {% if anthropic_configured %}
-                    <span class="px-2 py-1 bg-accent-success/10 text-accent-success text-xs rounded-full">Ativo</span>
-                    {% endif %}
+                    <div class="flex items-center gap-2">
+                        {% if anthropic_configured %}
+                        <span class="px-2 py-1 bg-accent-success/10 text-accent-success text-xs rounded-full">{% if anthropic_enabled %}Ativo{% else %}Pausado{% endif %}</span>
+                        <label class="relative inline-flex items-center cursor-pointer" title="Ligar/Desligar">
+                            <input type="checkbox" id="toggle-anthropic" class="sr-only peer" {% if anthropic_enabled %}checked{% endif %}
+                                   onchange="toggleApi('anthropic', this.checked)">
+                            <div class="w-9 h-5 bg-dark-surface peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-success"></div>
+                        </label>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="flex gap-2">
-                    <input type="password" name="anthropic_api_key" id="anthropic-api-key"
+                    <input type="password" name="anthropic_api_key" id="anthropic-api-key" {% if anthropic_configured and not anthropic_enabled %}disabled{% endif %}
                            value="{{ anthropic_key_masked or '' }}"
                            placeholder="sk-ant-..."
                            class="flex-1 px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary placeholder:text-dark-text-muted text-sm">
@@ -291,12 +325,19 @@
                             <p class="text-xs text-dark-text-muted">Gemini Pro, Gemini Ultra</p>
                         </div>
                     </div>
-                    {% if gemini_configured %}
-                    <span class="px-2 py-1 bg-accent-success/10 text-accent-success text-xs rounded-full">Ativo</span>
-                    {% endif %}
+                    <div class="flex items-center gap-2">
+                        {% if gemini_configured %}
+                        <span class="px-2 py-1 bg-accent-success/10 text-accent-success text-xs rounded-full">{% if gemini_enabled %}Ativo{% else %}Pausado{% endif %}</span>
+                        <label class="relative inline-flex items-center cursor-pointer" title="Ligar/Desligar">
+                            <input type="checkbox" id="toggle-gemini" class="sr-only peer" {% if gemini_enabled %}checked{% endif %}
+                                   onchange="toggleApi('gemini', this.checked)">
+                            <div class="w-9 h-5 bg-dark-surface peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent-primary rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-accent-success"></div>
+                        </label>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="flex gap-2">
-                    <input type="password" name="gemini_api_key" id="gemini-api-key"
+                    <input type="password" name="gemini_api_key" id="gemini-api-key" {% if gemini_configured and not gemini_enabled %}disabled{% endif %}
                            value="{{ gemini_key_masked or '' }}"
                            placeholder="AIzaSy..."
                            class="flex-1 px-4 py-2 bg-dark-card border border-dark-border text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-primary placeholder:text-dark-text-muted text-sm">
@@ -340,6 +381,34 @@
 
 <script>
 let currentApiKey = '';
+
+// Toggle API enabled/disabled
+async function toggleApi(apiName, enabled) {
+    try {
+        const response = await fetch('/settings/api/toggle', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: `api_name=${encodeURIComponent(apiName)}&enabled=${enabled}`
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Atualizar UI imediatamente
+            window.location.reload();
+        } else {
+            alert('Erro ao alterar estado da API: ' + (data.error || 'Erro desconhecido'));
+            // Reverter o toggle
+            const toggle = document.getElementById(`toggle-${apiName.replace('_', '-')}`);
+            if (toggle) toggle.checked = !enabled;
+        }
+    } catch (error) {
+        alert('Erro de conexao: ' + error.message);
+        // Reverter o toggle
+        const toggle = document.getElementById(`toggle-${apiName.replace('_', '-')}`);
+        if (toggle) toggle.checked = !enabled;
+    }
+}
 
 // Toggle API key visibility
 function toggleApiKeyVisibility(inputId) {

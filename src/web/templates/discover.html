@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}Descoberta OSM - Geoscout Pro{% endblock %}
+
+{% block page_title %}Descoberta OSM{% endblock %}
+
+{% block head %}
+<style>
+    #discover-map { min-height: 400px; }
+
+    /* Autocomplete dropdown */
+    .autocomplete-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1f2937;
+        border: 1px solid #374151;
+        border-radius: 0.5rem;
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 50;
+        display: none;
+    }
+    .autocomplete-dropdown.show {
+        display: block;
+    }
+    .autocomplete-item {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #374151;
+    }
+    .autocomplete-item:last-child {
+        border-bottom: none;
+    }
+    .autocomplete-item:hover {
+        background: #374151;
+    }
+    .autocomplete-item-name {
+        font-weight: 500;
+        color: #f9fafb;
+    }
+    .autocomplete-item-detail {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Inicializar mapa Leaflet com tema escuro CartoDB
+const map = L.map('discover-map').setView([38.7223, -9.1393], 10);
+
+// Tile layer CartoDB Dark (100% gratuito)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
+}).addTo(map);
+
+// Bounding boxes predefinidos
+const boundingBoxes = {
+    'portugal': [[36.838269, -9.526086], [42.280469, -6.189158]],
+    'lisboa': [[38.691, -9.230], [38.796, -9.087]],
+    'porto': [[41.121, -8.691], [41.185, -8.551]],
+    'faro': [[36.980, -7.970], [37.050, -7.900]],
+    'braga': [[41.530, -8.470], [41.580, -8.390]],
+    'coimbra': [[40.170, -8.470], [40.240, -8.390]],
+};
+
+let markers = [];
+let areaRectangle = null;
+
+// Atualizar mapa para uma bbox
+function updateMapBounds(bounds) {
+    if (areaRectangle) {
+        map.removeLayer(areaRectangle);
+    }
+
+    areaRectangle = L.rectangle(bounds, {
+        color: '#6366f1',
+        fillColor: '#6366f1',
+        fillOpacity: 0.1,
+        weight: 2
+    }).addTo(map);
+
+    map.fitBounds(bounds, { padding: [20, 20] });
+}
+
+// Atualizar mapa quando a area muda (por nome predefinido)
+function updateMapArea(area) {
+    const bounds = boundingBoxes[area.toLowerCase()];
+    if (bounds) {
+        updateMapBounds(bounds);
+    }
+}
+
+// Funcao para atualizar marcadores no mapa
+function updateMapMarkers(businesses) {
+    // Limpar marcadores existentes
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    if (!businesses || businesses.length === 0) return;
+
+    const bounds = L.latLngBounds();
+
+    businesses.forEach(biz => {
+        if (biz.latitude && biz.longitude) {
+            // Cor baseada no score
+            let fillColor = '#6b7280'; // muted
+            if (biz.osm_score >= 70) {
+                fillColor = '#10b981'; // success
+            } else if (biz.osm_score >= 40) {
+                fillColor = '#f59e0b'; // warning
+            }
+
+            const marker = L.circleMarker([biz.latitude, biz.longitude], {
+                radius: 7,
+                fillColor: fillColor,
+                color: '#6366f1',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
+
+            // Popup com informacoes
+            const popupContent = `
+                <div>
+                    <h3 style="font-weight: bold; margin-bottom: 4px; color: #f9fafb;">${biz.name}</h3>
+                    <p style="font-size: 12px; color: #9ca3af; margin: 0;">${biz.business_type || 'Negocio'}</p>
+                    ${biz.address ? `<p style="font-size: 11px; color: #6b7280; margin-top: 4px;">${biz.address}</p>` : ''}
+                    <p style="font-size: 12px; margin-top: 4px; color: ${fillColor};">Score: ${biz.osm_score}</p>
+                    ${biz.website ? '<p style="font-size: 11px; color: #10b981; margin-top: 2px;">Website disponivel</p>' : ''}
+                </div>
+            `;
+            marker.bindPopup(popupContent);
+
+            markers.push(marker);
+            bounds.extend([biz.latitude, biz.longitude]);
+        }
+    });
+
+    // Ajustar zoom para mostrar todos os marcadores
+    if (markers.length > 0) {
+        map.fitBounds(bounds, { padding: [50, 50] });
+    }
+}
+
+// ============ AUTOCOMPLETE ============
+const locationInput = document.getElementById('location-input');
+const autocompleteDropdown = document.getElementById('autocomplete-dropdown');
+let autocompleteTimeout = null;
+
+locationInput.addEventListener('input', function() {
+    const query = this.value.trim();
+
+    // Limpar timeout anterior
+    if (autocompleteTimeout) {
+        clearTimeout(autocompleteTimeout);
+    }
+
+    // Esconder dropdown se query muito curta
+    if (query.length < 2) {
+        autocompleteDropdown.classList.remove('show');
+        return;
+    }
+
+    // Verificar se e uma area predefinida
+    const predefined = Object.keys(boundingBoxes);
+    const matchedPredefined = predefined.filter(p =>
+        p.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (matchedPredefined.length > 0) {
+        // Mostrar areas predefinidas primeiro
+        showPredefinedSuggestions(matchedPredefined);
+    }
+
+    // Debounce para API (300ms)
+    autocompleteTimeout = setTimeout(async () => {
+        try {
+            const response = await fetch(`/api/osm/locations?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.locations && data.locations.length > 0) {
+                showApiSuggestions(data.locations, matchedPredefined);
+            }
+        } catch (error) {
+            console.error('Erro no autocomplete:', error);
+        }
+    }, 300);
+});
+
+function showPredefinedSuggestions(matches) {
+    autocompleteDropdown.innerHTML = matches.map(name => `
+        <div class="autocomplete-item" data-value="${name}" data-type="predefined">
+            <div class="autocomplete-item-name">${name.charAt(0).toUpperCase() + name.slice(1)}</div>
+            <div class="autocomplete-item-detail">Area predefinida</div>
+        </div>
+    `).join('');
+
+    autocompleteDropdown.classList.add('show');
+    addAutocompleteListeners();
+}
+
+function showApiSuggestions(locations, predefinedMatches) {
+    let html = '';
+
+    // Adicionar predefinidas primeiro
+    if (predefinedMatches && predefinedMatches.length > 0) {
+        html += predefinedMatches.map(name => `
+            <div class="autocomplete-item" data-value="${name}" data-type="predefined">
+                <div class="autocomplete-item-name">${name.charAt(0).toUpperCase() + name.slice(1)}</div>
+                <div class="autocomplete-item-detail">Area predefinida</div>
+            </div>
+        `).join('');
+    }
+
+    // Adicionar resultados da API
+    html += locations.map(loc => `
+        <div class="autocomplete-item" data-value="${loc.name}" data-type="api"
+             data-lat="${loc.lat}" data-lon="${loc.lon}"
+             data-bbox="${loc.bbox ? loc.bbox.join(',') : ''}">
+            <div class="autocomplete-item-name">${loc.name}</div>
+            <div class="autocomplete-item-detail">${loc.display_name}</div>
+        </div>
+    `).join('');
+
+    autocompleteDropdown.innerHTML = html;
+    autocompleteDropdown.classList.add('show');
+    addAutocompleteListeners();
+}
+
+function addAutocompleteListeners() {
+    document.querySelectorAll('.autocomplete-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const value = this.dataset.value;
+            const type = this.dataset.type;
+
+            locationInput.value = value;
+            autocompleteDropdown.classList.remove('show');
+
+            // Atualizar mapa
+            if (type === 'predefined') {
+                updateMapArea(value);
+            } else if (this.dataset.bbox) {
+                const bbox = this.dataset.bbox.split(',').map(Number);
+                updateMapBounds([[bbox[0], bbox[1]], [bbox[2], bbox[3]]]);
+            } else if (this.dataset.lat && this.dataset.lon) {
+                map.setView([parseFloat(this.dataset.lat), parseFloat(this.dataset.lon)], 13);
+            }
+        });
+    });
+}
+
+// Esconder dropdown ao clicar fora
+document.addEventListener('click', function(e) {
+    if (!locationInput.contains(e.target) && !autocompleteDropdown.contains(e.target)) {
+        autocompleteDropdown.classList.remove('show');
+    }
+});
+
+// Inicializar com area default
+updateMapArea('{{ default_area }}');
+
+// Listener HTMX para atualizar mapa apos descoberta
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'discover-results') {
+        const previewData = window._osmPreviewData;
+        if (previewData && previewData.length > 0) {
+            updateMapMarkers(previewData);
+        }
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="flex flex-col h-[calc(100vh-8rem)] gap-4">
+    <!-- Top: Filters Bar -->
+    <div class="bg-dark-card rounded-xl border border-dark-border p-4 shadow-dark flex-shrink-0">
+        <form hx-post="/discover"
+              hx-target="#discover-results"
+              hx-indicator="#discover-indicator"
+              class="flex flex-wrap items-end gap-4"
+              role="search"
+              aria-label="Formulario de descoberta OSM">
+
+            <!-- Location Input with Autocomplete -->
+            <div class="relative flex-1 min-w-[200px]">
+                <label for="location-input" class="block text-dark-text-secondary text-xs mb-1">Localizacao *</label>
+                <input type="text" id="location-input" name="location" required
+                       value="{{ default_area|title }}"
+                       placeholder="Ex: Lisboa, Almada, Setubal..."
+                       autocomplete="off"
+                       aria-required="true"
+                       class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white placeholder-dark-text-muted focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
+                <div id="autocomplete-dropdown" class="autocomplete-dropdown"></div>
+            </div>
+
+            <!-- Business Type Selector -->
+            <div class="flex-1 min-w-[180px]">
+                <label for="business-type" class="block text-dark-text-secondary text-xs mb-1">Tipo de Negocio</label>
+                <select id="business-type" name="business_type"
+                        class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
+                    <option value="">Todos os tipos</option>
+                    {% for category, types in business_types.items() %}
+                    <optgroup label="{{ category }}">
+                        {% for type in types %}
+                        <option value="{{ type.value }}">{{ type.label }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Days Back -->
+            <div class="w-28">
+                <label for="days-back" class="block text-dark-text-secondary text-xs mb-1">Ultimos dias</label>
+                <input type="number" id="days-back" name="days_back" value="{{ default_days }}" min="1" max="90"
+                       class="w-full px-3 py-2 bg-dark-surface border border-dark-border rounded-lg text-white focus:ring-2 focus:ring-accent-primary focus:border-transparent transition text-sm">
+            </div>
+
+            <!-- Save to DB Toggle -->
+            <div class="flex items-center">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="save_to_db" value="yes" checked
+                           class="w-4 h-4 rounded bg-dark-surface border-dark-border text-accent-primary focus:ring-accent-primary focus:ring-offset-0">
+                    <span class="text-sm text-dark-text-secondary">Guardar</span>
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit"
+                    class="bg-accent-primary hover:bg-accent-primary/80 text-white px-5 py-2 rounded-lg transition flex items-center justify-center gap-2 text-sm font-medium whitespace-nowrap">
+                <span id="discover-indicator" class="htmx-indicator flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    A descobrir...
+                </span>
+                <span class="htmx-indicator-hide flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    Descobrir
+                </span>
+            </button>
+
+            <!-- Status indicator -->
+            {% if osm_healthy %}
+            <div class="flex items-center gap-1.5 text-xs text-accent-success">
+                <span class="w-2 h-2 rounded-full bg-accent-success animate-pulse"></span>
+                OSM Activo
+            </div>
+            {% else %}
+            <div class="flex items-center gap-1.5 text-xs text-accent-warning">
+                <span class="w-2 h-2 rounded-full bg-accent-warning"></span>
+                OSM Offline
+            </div>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- Bottom: Results (left) + Map (right) -->
+    <div class="flex gap-4 flex-1 min-h-0">
+        <!-- Left Panel: Results List -->
+        <div class="w-[420px] flex-shrink-0 flex flex-col bg-dark-card rounded-xl border border-dark-border overflow-hidden shadow-dark">
+            <!-- Results Header -->
+            <div class="px-4 py-3 border-b border-dark-border flex items-center justify-between">
+                <h3 class="text-sm font-semibold text-dark-text-primary">Resultados</h3>
+                <span id="results-count" class="text-xs text-dark-text-muted"></span>
+            </div>
+
+            <!-- Results List (scrollable) -->
+            <div id="discover-results" class="flex-1 overflow-y-auto p-3 space-y-2">
+                <!-- Results loaded via HTMX -->
+                <div class="flex items-center justify-center h-full">
+                    <div class="text-center py-8">
+                        <svg class="w-12 h-12 text-dark-text-muted mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/>
+                        </svg>
+                        <p class="text-dark-text-secondary text-sm">Escolhe uma localizacao</p>
+                        <p class="text-dark-text-muted text-xs mt-1">e clica em "Descobrir"</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Footer -->
+            <div class="px-4 py-2 border-t border-dark-border bg-dark-surface/50">
+                <div class="flex items-center gap-4 text-xs text-dark-text-muted">
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-accent-success"></span>
+                        Score >= 70
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-accent-warning"></span>
+                        40-69
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-dark-text-muted"></span>
+                        < 40
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Leaflet Map -->
+        <div class="flex-1 bg-dark-card rounded-xl border border-dark-border overflow-hidden relative shadow-dark-lg">
+            <div id="discover-map" class="w-full h-full" role="img" aria-label="Mapa com area de descoberta e negocios encontrados"></div>
+
+            <!-- Map Legend -->
+            <div class="absolute bottom-4 right-4 bg-dark-surface/90 backdrop-blur-sm rounded-lg p-3 border border-dark-border text-xs">
+                <div class="font-semibold text-dark-text-primary mb-2">Legenda</div>
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-accent-success"></span>
+                        <span class="text-dark-text-secondary">Score >= 70</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-accent-warning"></span>
+                        <span class="text-dark-text-secondary">Score 40-69</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-dark-text-muted"></span>
+                        <span class="text-dark-text-secondary">Score < 40</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

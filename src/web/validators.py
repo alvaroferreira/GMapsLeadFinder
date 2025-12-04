@@ -8,7 +8,6 @@ Implements OWASP recommendations for:
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -17,15 +16,15 @@ class SearchRequest(BaseModel):
     """Validated search request model."""
 
     query: str = Field(..., min_length=1, max_length=500, description="Search query")
-    location: Optional[str] = Field(None, max_length=100, description="Location as lat,lng")
+    location: str | None = Field(None, max_length=100, description="Location as lat,lng")
     radius: int = Field(5000, ge=100, le=50000, description="Search radius in meters")
-    place_type: Optional[str] = Field(None, max_length=50, description="Place type filter")
-    max_reviews: Optional[int] = Field(None, ge=0, le=10000, description="Maximum review count filter")
-    has_website: Optional[str] = Field(None, pattern="^(yes|no)?$", description="Website filter")
+    place_type: str | None = Field(None, max_length=50, description="Place type filter")
+    max_reviews: int | None = Field(None, ge=0, le=10000, description="Maximum review count filter")
+    has_website: str | None = Field(None, pattern="^(yes|no)?$", description="Website filter")
     max_results: int = Field(60, ge=1, le=100, description="Maximum results")
-    date_from: Optional[str] = Field(None, description="Filter date from (YYYY-MM-DD)")
-    date_to: Optional[str] = Field(None, description="Filter date to (YYYY-MM-DD)")
-    only_new: Optional[str] = Field(None, pattern="^(yes)?$", description="Show only new businesses")
+    date_from: str | None = Field(None, description="Filter date from (YYYY-MM-DD)")
+    date_to: str | None = Field(None, description="Filter date to (YYYY-MM-DD)")
+    only_new: str | None = Field(None, pattern="^(yes)?$", description="Show only new businesses")
 
     @field_validator("query")
     @classmethod
@@ -42,7 +41,7 @@ class SearchRequest(BaseModel):
 
     @field_validator("location")
     @classmethod
-    def validate_location(cls, v: Optional[str]) -> Optional[str]:
+    def validate_location(cls, v: str | None) -> str | None:
         """Validate location format (lat,lng)."""
         if v:
             parts = v.split(",")
@@ -58,7 +57,7 @@ class SearchRequest(BaseModel):
 
     @field_validator("date_from", "date_to")
     @classmethod
-    def validate_date(cls, v: Optional[str]) -> Optional[str]:
+    def validate_date(cls, v: str | None) -> str | None:
         """Validate date format."""
         if v:
             try:
@@ -71,12 +70,12 @@ class SearchRequest(BaseModel):
 class LeadUpdateRequest(BaseModel):
     """Validated lead update request."""
 
-    status: Optional[str] = Field(None, max_length=20, description="Lead status")
-    notes: Optional[str] = Field(None, max_length=5000, description="Lead notes")
+    status: str | None = Field(None, max_length=20, description="Lead status")
+    notes: str | None = Field(None, max_length=5000, description="Lead notes")
 
     @field_validator("status")
     @classmethod
-    def validate_status(cls, v: Optional[str]) -> Optional[str]:
+    def validate_status(cls, v: str | None) -> str | None:
         """Validate status is one of allowed values."""
         if v:
             allowed_statuses = ["new", "contacted", "qualified", "converted", "rejected"]
@@ -86,7 +85,7 @@ class LeadUpdateRequest(BaseModel):
 
     @field_validator("notes")
     @classmethod
-    def sanitize_notes(cls, v: Optional[str]) -> Optional[str]:
+    def sanitize_notes(cls, v: str | None) -> str | None:
         """Sanitize notes to prevent XSS."""
         if v:
             # Remove script tags and other dangerous HTML
@@ -102,12 +101,12 @@ class ExportRequest(BaseModel):
     """Validated export request."""
 
     format: str = Field(..., pattern="^(csv|xlsx|json)$", description="Export format")
-    status: Optional[str] = Field(None, max_length=20, description="Filter by status")
-    min_score: Optional[int] = Field(None, ge=0, le=100, description="Minimum lead score")
+    status: str | None = Field(None, max_length=20, description="Filter by status")
+    min_score: int | None = Field(None, ge=0, le=100, description="Minimum lead score")
 
     @field_validator("status")
     @classmethod
-    def validate_status(cls, v: Optional[str]) -> Optional[str]:
+    def validate_status(cls, v: str | None) -> str | None:
         """Validate status is allowed."""
         if v:
             allowed_statuses = ["new", "contacted", "qualified", "converted", "rejected"]
@@ -169,12 +168,14 @@ class AutomationRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=100, description="Search name")
     query: str = Field(..., min_length=1, max_length=500, description="Search query")
-    location: Optional[str] = Field(None, max_length=100, description="Location")
+    location: str | None = Field(None, max_length=100, description="Location")
     radius: int = Field(5000, ge=100, le=50000, description="Search radius")
-    place_type: Optional[str] = Field(None, max_length=50, description="Place type")
+    place_type: str | None = Field(None, max_length=50, description="Place type")
     interval_hours: int = Field(24, ge=1, le=168, description="Interval in hours (max 1 week)")
     notify_on_new: bool = Field(True, description="Send notifications for new leads")
-    notify_threshold_score: int = Field(50, ge=0, le=100, description="Minimum score for notifications")
+    notify_threshold_score: int = Field(
+        50, ge=0, le=100, description="Minimum score for notifications"
+    )
 
     @field_validator("name")
     @classmethod

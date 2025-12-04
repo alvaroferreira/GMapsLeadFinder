@@ -20,6 +20,7 @@ from src.services.scorer import LeadScorer
 from src.services.search import SearchService
 from src.services.tracker import TrackerService
 
+
 console = Console()
 
 
@@ -52,6 +53,7 @@ def cli(ctx):
 
 # ============ SEARCH ============
 
+
 @cli.command()
 @click.option("--query", "-q", required=True, help="Texto de pesquisa")
 @click.option("--location", "-l", help="Localizacao (cidade ou lat,lng)")
@@ -64,8 +66,19 @@ def cli(ctx):
 @click.option("--has-website/--no-website", default=None, help="Filtrar por website")
 @click.option("--has-phone/--no-phone", default=None, help="Filtrar por telefone")
 @click.option("--max-results", default=60, type=int, help="Maximo de resultados")
-def search(query, location, radius, place_type, min_reviews, max_reviews,
-           min_rating, max_rating, has_website, has_phone, max_results):
+def search(
+    query,
+    location,
+    radius,
+    place_type,
+    min_reviews,
+    max_reviews,
+    min_rating,
+    max_rating,
+    has_website,
+    has_phone,
+    max_results,
+):
     """Pesquisa negocios no Google Maps."""
     if not settings.has_api_key:
         console.print("[red]Erro: API key nao configurada[/red]")
@@ -74,7 +87,10 @@ def search(query, location, radius, place_type, min_reviews, max_reviews,
     # Parse location
     loc_tuple = None
     if location:
-        if "," in location and location.replace(",", "").replace("-", "").replace(".", "").isdigit():
+        if (
+            "," in location
+            and location.replace(",", "").replace("-", "").replace(".", "").isdigit()
+        ):
             parts = location.split(",")
             loc_tuple = (float(parts[0].strip()), float(parts[1].strip()))
         else:
@@ -92,19 +108,21 @@ def search(query, location, radius, place_type, min_reviews, max_reviews,
     ) as progress:
         progress.add_task("Pesquisando...", total=None)
 
-        result = run_async(service.search(
-            query=query,
-            location=loc_tuple,
-            radius=radius,
-            place_type=place_type,
-            max_results=max_results,
-            min_reviews=min_reviews,
-            max_reviews=max_reviews,
-            min_rating=min_rating,
-            max_rating=max_rating,
-            has_website=has_website,
-            has_phone=has_phone,
-        ))
+        result = run_async(
+            service.search(
+                query=query,
+                location=loc_tuple,
+                radius=radius,
+                place_type=place_type,
+                max_results=max_results,
+                min_reviews=min_reviews,
+                max_reviews=max_reviews,
+                min_rating=min_rating,
+                max_rating=max_rating,
+                has_website=has_website,
+                has_phone=has_phone,
+            )
+        )
 
     console.print("\n[green]Pesquisa concluida![/green]")
     console.print(f"  Total encontrados: {result.total_found}")
@@ -116,6 +134,7 @@ def search(query, location, radius, place_type, min_reviews, max_reviews,
 
 
 # ============ LIST ============
+
 
 @cli.command("list")
 @click.option("--status", type=click.Choice(LEAD_STATUSES), help="Filtrar por status")
@@ -170,9 +189,15 @@ def list_leads(status, min_score, city, has_website, limit, offset):
 
 # ============ EXPORT ============
 
+
 @cli.command()
-@click.option("--format", "fmt", type=click.Choice(["csv", "xlsx", "json", "hubspot", "pipedrive", "salesforce"]),
-              default="csv", help="Formato de exportacao")
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["csv", "xlsx", "json", "hubspot", "pipedrive", "salesforce"]),
+    default="csv",
+    help="Formato de exportacao",
+)
 @click.option("--output", "-o", help="Nome do ficheiro")
 @click.option("--min-score", type=int, help="Score minimo")
 @click.option("--status", type=click.Choice(LEAD_STATUSES), help="Filtrar por status")
@@ -214,6 +239,7 @@ def export(fmt, output, min_score, status, has_website, limit):
 
 # ============ STATS ============
 
+
 @cli.command()
 def stats():
     """Mostra estatisticas da base de dados."""
@@ -234,6 +260,7 @@ def stats():
 
 
 # ============ UPDATE ============
+
 
 @cli.command()
 @click.argument("place_id")
@@ -264,6 +291,7 @@ def update(place_id, status, notes):
 
 # ============ NEW ============
 
+
 @cli.command("new")
 @click.option("--since", help="Data inicial (YYYY-MM-DD)")
 @click.option("--days", default=7, type=int, help="Ultimos N dias")
@@ -286,7 +314,9 @@ def show_new(since, days, limit):
 
     for b in businesses:
         score_color = "green" if b.lead_score >= 50 else "yellow" if b.lead_score >= 30 else "white"
-        console.print(f"  [cyan]{b.name}[/cyan] - Score: [{score_color}]{b.lead_score}[/{score_color}]")
+        console.print(
+            f"  [cyan]{b.name}[/cyan] - Score: [{score_color}]{b.lead_score}[/{score_color}]"
+        )
         if b.formatted_address:
             console.print(f"    {b.formatted_address}")
         console.print(f"    Descoberto: {b.first_seen_at.strftime('%Y-%m-%d %H:%M')}")
@@ -296,6 +326,7 @@ def show_new(since, days, limit):
 
 
 # ============ SCORE ============
+
 
 @cli.command()
 @click.option("--recalculate", is_flag=True, help="Recalcular todos os scores")
@@ -346,6 +377,7 @@ def score(recalculate, explain_id):
 
 
 # ============ TRACK ============
+
 
 @cli.command()
 @click.option("--add", "add_name", help="Criar nova pesquisa agendada")
@@ -403,7 +435,9 @@ def track(add_name, query, interval, show_list, run_id, disable):
         return
 
     if run_id:
-        with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
+        with Progress(
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}")
+        ) as progress:
             progress.add_task("Executando pesquisa...", total=None)
             result = run_async(tracker.run_tracked_search(run_id))
 
@@ -427,6 +461,7 @@ def track(add_name, query, interval, show_list, run_id, disable):
 
 
 # ============ BACKUP ============
+
 
 @cli.command()
 @click.option("--output", "-o", help="Nome do ficheiro de backup")
@@ -453,11 +488,14 @@ def backup(output):
 
 # ============ CONFIG ============
 
+
 @cli.command()
 def config():
     """Mostra configuracao atual."""
     console.print("\n[bold]Configuracao Atual[/bold]\n")
-    console.print(f"  API Key: {'[green]Configurada[/green]' if settings.has_api_key else '[red]Nao configurada[/red]'}")
+    console.print(
+        f"  API Key: {'[green]Configurada[/green]' if settings.has_api_key else '[red]Nao configurada[/red]'}"
+    )
     console.print(f"  Database: {settings.database_url}")
     console.print(f"  Export Dir: {settings.export_dir}")
     console.print(f"  Raio padrao: {settings.default_radius}m")

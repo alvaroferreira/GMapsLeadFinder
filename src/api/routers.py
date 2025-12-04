@@ -6,11 +6,11 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from src.database.db import db
-from src.database.queries import BusinessQueries, SearchHistoryQueries
-from src.exceptions import BusinessNotFoundError, DatabaseError
+from src.database.queries import BusinessQueries
 from src.services.enricher import EnrichmentService
 from src.services.notion import NotionService
 from src.services.scheduler import NotificationService
+
 
 # API Router v1
 api_v1 = APIRouter(prefix="/api/v1", tags=["api"])
@@ -18,8 +18,10 @@ api_v1 = APIRouter(prefix="/api/v1", tags=["api"])
 
 # ============ MODELS (DTOs) ============
 
+
 class BusinessResponse(BaseModel):
     """Response model para um negocio."""
+
     id: str
     name: str
     formatted_address: str | None = None
@@ -36,6 +38,7 @@ class BusinessResponse(BaseModel):
 
 class StatsResponse(BaseModel):
     """Response model para estatisticas."""
+
     total: int
     by_status: dict[str, int]
     avg_score: float
@@ -46,16 +49,19 @@ class StatsResponse(BaseModel):
 
 class UpdateLeadStatusRequest(BaseModel):
     """Request model para atualizar status de lead."""
+
     status: str = Field(..., description="Novo status do lead")
 
 
 class UpdateLeadNotesRequest(BaseModel):
     """Request model para atualizar notas de lead."""
+
     notes: str = Field(..., description="Notas a adicionar")
 
 
 class EnrichmentStatsResponse(BaseModel):
     """Response model para estatisticas de enriquecimento."""
+
     total: int
     pending: int
     in_progress: int
@@ -67,6 +73,7 @@ class EnrichmentStatsResponse(BaseModel):
 
 class NotionStatusResponse(BaseModel):
     """Response model para status do Notion."""
+
     connected: bool
     workspace: str | None = None
     stats: dict[str, int]
@@ -74,11 +81,13 @@ class NotionStatusResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Response model para erros."""
+
     error: str
     details: dict[str, Any] | None = None
 
 
 # ============ ENDPOINTS ============
+
 
 @api_v1.get(
     "/stats",

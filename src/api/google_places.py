@@ -1,7 +1,7 @@
 """Cliente async para Google Places API (New)."""
 
 import asyncio
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import httpx
 from tenacity import (
@@ -17,16 +17,19 @@ from src.config import settings
 
 class GooglePlacesError(Exception):
     """Erro base para operacoes da Google Places API."""
+
     pass
 
 
 class GooglePlacesAuthError(GooglePlacesError):
     """Erro de autenticacao (API key invalida)."""
+
     pass
 
 
 class GooglePlacesRateLimitError(GooglePlacesError):
     """Erro de rate limiting."""
+
     pass
 
 
@@ -36,23 +39,25 @@ class GooglePlacesClient:
     BASE_URL = "https://places.googleapis.com/v1"
 
     # Field mask otimizado para lead generation
-    FIELD_MASK = ",".join([
-        "places.id",
-        "places.displayName",
-        "places.formattedAddress",
-        "places.location",
-        "places.types",
-        "places.businessStatus",
-        "places.nationalPhoneNumber",
-        "places.internationalPhoneNumber",
-        "places.websiteUri",
-        "places.googleMapsUri",
-        "places.rating",
-        "places.userRatingCount",
-        "places.priceLevel",
-        "places.photos",
-        "nextPageToken",
-    ])
+    FIELD_MASK = ",".join(
+        [
+            "places.id",
+            "places.displayName",
+            "places.formattedAddress",
+            "places.location",
+            "places.types",
+            "places.businessStatus",
+            "places.nationalPhoneNumber",
+            "places.internationalPhoneNumber",
+            "places.websiteUri",
+            "places.googleMapsUri",
+            "places.rating",
+            "places.userRatingCount",
+            "places.priceLevel",
+            "places.photos",
+            "nextPageToken",
+        ]
+    )
 
     def __init__(self, api_key: str | None = None):
         """
@@ -93,25 +98,22 @@ class GooglePlacesClient:
             GooglePlacesRateLimitError: Se rate limit excedido
             GooglePlacesError: Para outros erros
         """
-        async with self._semaphore:
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"{self.BASE_URL}/{endpoint}",
-                    headers=self._get_headers(),
-                    json=payload,
-                    timeout=30.0,
-                )
+        async with self._semaphore, httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.BASE_URL}/{endpoint}",
+                headers=self._get_headers(),
+                json=payload,
+                timeout=30.0,
+            )
 
-                if response.status_code == 401:
-                    raise GooglePlacesAuthError("API key invalida ou nao autorizada")
-                elif response.status_code == 429:
-                    raise GooglePlacesRateLimitError("Rate limit excedido")
-                elif response.status_code >= 400:
-                    raise GooglePlacesError(
-                        f"Erro na API: {response.status_code} - {response.text}"
-                    )
+            if response.status_code == 401:
+                raise GooglePlacesAuthError("API key invalida ou nao autorizada")
+            elif response.status_code == 429:
+                raise GooglePlacesRateLimitError("Rate limit excedido")
+            elif response.status_code >= 400:
+                raise GooglePlacesError(f"Erro na API: {response.status_code} - {response.text}")
 
-                return response.json()
+            return response.json()
 
     async def text_search(
         self,
@@ -263,7 +265,7 @@ class GooglePlacesClient:
         try:
             # text_search nao tem parametro max_total_results
             # esse parametro e do search_all_pages
-            response = await self.text_search("test")
+            await self.text_search("test")
             return True
         except GooglePlacesAuthError:
             return False

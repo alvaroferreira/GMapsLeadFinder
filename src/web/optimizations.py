@@ -1,6 +1,7 @@
 """Otimizacoes de performance para o servidor web."""
 
-from typing import Any, Optional
+from typing import Any
+
 from src.database.db import db
 from src.database.models import IntegrationConfig
 from src.database.queries import BusinessQueries
@@ -23,9 +24,7 @@ def get_notion_config_cached() -> dict[str, Any] | None:
 
     with db.get_session() as session:
         config = (
-            session.query(IntegrationConfig)
-            .filter(IntegrationConfig.service == "notion")
-            .first()
+            session.query(IntegrationConfig).filter(IntegrationConfig.service == "notion").first()
         )
 
         if config:
@@ -100,14 +99,16 @@ def business_to_dict(business: Any, include_extra: bool = False) -> dict[str, An
     }
 
     if include_extra:
-        base_dict.update({
-            "phone": business.phone_number,
-            "website": business.website,
-            "enrichment_status": getattr(business, "enrichment_status", "pending"),
-            "latitude": business.latitude,
-            "longitude": business.longitude,
-            "email": business.email,
-        })
+        base_dict.update(
+            {
+                "phone": business.phone_number,
+                "website": business.website,
+                "enrichment_status": getattr(business, "enrichment_status", "pending"),
+                "latitude": business.latitude,
+                "longitude": business.longitude,
+                "email": business.email,
+            }
+        )
 
     return base_dict
 

@@ -2,9 +2,7 @@
 
 from datetime import datetime, timedelta
 
-import pytest
-
-from src.database.models import Business, SearchHistory, BusinessSnapshot
+from src.database.models import Business
 from src.database.queries import BusinessQueries, SearchHistoryQueries, SnapshotQueries
 
 
@@ -16,9 +14,7 @@ class TestBusinessModel:
         test_session.add(sample_business)
         test_session.commit()
 
-        result = test_session.query(Business).filter(
-            Business.id == sample_business.id
-        ).first()
+        result = test_session.query(Business).filter(Business.id == sample_business.id).first()
 
         assert result is not None
         assert result.name == sample_business.name
@@ -260,7 +256,5 @@ class TestSnapshotQueries:
             )
         test_session.commit()
 
-        results = SnapshotQueries.get_by_business(
-            test_session, sample_business.id, limit=2
-        )
+        results = SnapshotQueries.get_by_business(test_session, sample_business.id, limit=2)
         assert len(results) == 2

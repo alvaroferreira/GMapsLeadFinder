@@ -1,9 +1,9 @@
 """Conexao e gestao da base de dados."""
 
 import os
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -40,10 +40,12 @@ class Database:
 
         if self.is_postgresql:
             # PostgreSQL (Neon) - connection pooling
-            engine_kwargs.update({
-                "pool_size": 5,
-                "max_overflow": 10,
-            })
+            engine_kwargs.update(
+                {
+                    "pool_size": 5,
+                    "max_overflow": 10,
+                }
+            )
         else:
             # SQLite - desativar check_same_thread
             engine_kwargs["connect_args"] = {"check_same_thread": False}
